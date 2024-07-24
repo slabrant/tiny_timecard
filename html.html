@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tiny Timecard</title>
+        <script src="js.js" defer></script>
+    </head>
+    <body>
+        <button id="backDayButton">◀</button>
+        <input id="dateInput" type="date">
+        <button id="nextDayButton">▶</button>
+        <button id="addButton">+</button>
+        <button id="saveButton">🖫</button>
+        <button id="downloadButton">⭳</button>
+        <div id="rows"></div>
+        <div id="rowTemplate" hidden>
+            <input class="start" type="time">
+            <input class="stop" type="time">
+            <input class="notes" type="text">
+            <button class="remove">X</button>
+        </div>
+    </body>
+</html>
