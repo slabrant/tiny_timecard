@@ -55,7 +55,9 @@ document.getElementById('saveButton').addEventListener('click', (e) => {
 document.getElementById('downloadButton').addEventListener('click', (e) => {
     let days = JSON.parse(localStorage.getItem('days'));
     let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
-        newDays[key] = days[key];
+        if (0 < days[key].length) {
+            newDays[key] = days[key];
+        }
         return newDays;
     }, {});
 

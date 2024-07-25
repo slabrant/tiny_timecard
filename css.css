@@ -1,0 +1,12 @@
+button {
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+input {
+    margin-right: 4px;
+}
+
+.notes {
+    width: calc(80% - 8em);
+}
