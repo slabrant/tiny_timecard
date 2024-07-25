@@ -54,12 +54,18 @@ document.getElementById('saveButton').addEventListener('click', (e) => {
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
     let days = JSON.parse(localStorage.getItem('days'));
+    let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
+        newDays[key] = days[key];
+        return newDays;
+    }, {});
 
-    let csv = 'data:text/csv;charset=utf-8,'
-    for (let date in days) {
+    let csv = 'data:text/csv;charset=utf-8,\uFEFF'
+    for (let date in sortedDays) {
         csv += date + '\n'
-        for (let entryKey in days[date]) {
-            csv += `${days[date][entryKey]['start']},${days[date][entryKey]['stop']},${days[date][entryKey]['notes']}\n`;
+        for (let entryKey in sortedDays[date]) {
+            const entry = sortedDays[date][entryKey];
+            const notes = entry['notes'].replace("\"", "\"\"");
+            csv += encodeURIComponent(`"${entry['start']}","${entry['stop']}","${notes}"\n`);
         }
     }
     const now = new Date;
@@ -91,9 +97,11 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.hidden = false;
 
     newRow.querySelector('.remove').addEventListener('click', (e) => {
-        newRow.remove();
-        days[date] = days[date].filter((entry) => entry.id !== id)
-        localStorage.setItem('days', JSON.stringify(days));
+        if (confirm("This will delete the entry with these notes: " + newRow.querySelector('.notes').value)) {
+            newRow.remove();
+            days[date] = days[date].filter((entry) => entry.id !== id);
+            localStorage.setItem('days', JSON.stringify(days));
+        }
     });
 };
 
@@ -119,7 +127,7 @@ const saveRows = () => {
 }
 
 const addRowsForDay = (date) => {
-    localStorage.setItem('date', date);
+    sessionStorage.setItem('date', date);
 
     let days = JSON.parse(localStorage.getItem('days'));
     if (!days) {
@@ -145,7 +153,7 @@ const updateDayByAmount = (amount) => {
 }
 
 const now = new Date;
-let date = localStorage.getItem('date');
+let date = sessionStorage.getItem('date');
 if (!date) date = dateFormat.format(now);
 document.getElementById('dateInput').value = date;
 
