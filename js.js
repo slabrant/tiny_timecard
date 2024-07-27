@@ -24,15 +24,21 @@ document.getElementById('nextDayButton').addEventListener('click', (e) => {
 
 document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
-    const time = timeFormat.format(now);
+    let time = timeFormat.format(now);
 
     let days = JSON.parse(localStorage.getItem('days'));
     let newEntryId = days[date].length;
     if (days[date][newEntryId-1]?.start === time) {
         return;
     }
-    if (days[date][newEntryId-1] && days[date][newEntryId-1].stop === '') {
-        days[date][newEntryId-1].stop = time;
+    if (days[date][newEntryId-1]) {
+        let entryStop = days[date][newEntryId - 1].stop;
+        if (entryStop === '') {
+            entryStop = time;
+        }
+        else {
+            time = entryStop;
+        }
     }
 
     days[date].push({
