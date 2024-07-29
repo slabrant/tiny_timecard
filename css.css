@@ -1,10 +1,16 @@
 button {
+    margin-left: 4px;
     margin-right: 4px;
     margin-bottom: 4px;
 }
 
-input {
-    margin-right: 4px;
+.time_group {
+    margin-right: 10px;
+}
+
+button.stop, button.start {
+    margin-left: 0px;
+    margin-right: 2px;
 }
 
 .notes {
