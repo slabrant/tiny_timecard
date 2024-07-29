@@ -1,35 +1,36 @@
-button {
+button, label {
     margin-right: 4px;
     margin-bottom: 4px;
     border-radius: 5px;
-    border-width: 1px;
+    border: #000, 1px, solid;
     transition: background-color 0.1s ease; /* Smooth transition */
     padding: 0.2em 0.5em;
+    font: 0.75em sans-serif;
 }
 
-button.primary {
+.primary {
     background-color: #4394ff;
     color: #fff;
 }
 
-button.primary:hover {
+.primary:hover {
     background-color: #0059ad;
 }
 
-button.warning {
+.warning {
     background-color: #ffce1e;
     color: #fff;
 }
 
-button.warning:hover {
+.warning:hover {
     background-color: #cfa719;
 }
 
-button.secondary {
+.secondary {
     background-color: #b0b0b0;
 }
 
-button.secondary:hover {
+.secondary:hover {
     background-color: #808080;
 }
 

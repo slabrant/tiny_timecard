@@ -108,6 +108,7 @@ document.getElementById('downloadButton').addEventListener('click', (e) => {
             csv += encodeURIComponent(`"${entry['start']}","${entry['stop']}","${notes}"\n`);
         }
     }
+    
     const now = new Date;
     const todaysDate = dateFormat.format(now);
     const time = timeFormat.format(now);
@@ -115,6 +116,10 @@ document.getElementById('downloadButton').addEventListener('click', (e) => {
     anchor.href = csv;
     anchor.download = `tiny_time_${todaysDate}_${time}.csv`;
     anchor.click();
+});
+
+document.getElementById('uploadButton').addEventListener('change', (e) => {
+    console.log(e.target.files[0])
 });
 
 document.addEventListener('keydown', (e) => {
