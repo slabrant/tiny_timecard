@@ -3,23 +3,34 @@ button {
     margin-bottom: 4px;
     border-radius: 5px;
     border-width: 1px;
-    background-color: #4394ff; /* Light shade of blue */
     transition: background-color 0.1s ease; /* Smooth transition */
-    color: #fff; /* White color */
     padding: 0.2em 0.5em;
 }
 
-button:hover {
+button.primary {
+    background-color: #4394ff;
+    color: #fff;
+}
+
+button.primary:hover {
     background-color: #0059ad;
 }
 
+button.warning {
+    background-color: #ffce1e;
+    color: #fff;
+}
+
+button.warning:hover {
+    background-color: #cfa719;
+}
+
 button.secondary {
-    background-color: #b0b0b0; 
-    color: #000;
+    background-color: #b0b0b0;
 }
 
 button.secondary:hover {
-    background-color: #808080; 
+    background-color: #808080;
 }
 
 hr {

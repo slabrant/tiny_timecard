@@ -9,17 +9,49 @@ const timeFormat = new Intl.DateTimeFormat('en-CA', {
     hour12: false,
 });
 
+/**
+ * this is a slow and lazy way to do this, but also short and easy to understand
+ * @returns boolean
+ */
+const checkRowsEqual = () => {
+    let pageData = getRowsData();
+    let days = JSON.parse(localStorage.getItem('days'));
+    let storedData = days[date];
+
+    let areRowsEqual = JSON.stringify(pageData) === JSON.stringify(storedData);
+    
+    if (areRowsEqual) {
+        document.getElementById('saveButton').classList.add('secondary');
+        document.getElementById('saveButton').classList.remove('warning');
+    }
+    else {
+        document.getElementById('saveButton').classList.add('warning');
+        document.getElementById('saveButton').classList.remove('secondary');
+    }
+
+    return areRowsEqual;
+}
+
 document.getElementById('backDayButton').addEventListener('click', (e) => {
-    updateDayByAmount(-1);
+    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+        updateDayByAmount(-1);
+    }
 })
 
 document.getElementById('dateInput').addEventListener('change', (e) => {
-    date = e.target.value;
-    addRowsForDay(date);
+    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+        date = e.target.value;
+        addRowsForDay(date);
+    }
+    else {
+        e.target.value = date;
+    }
 });
 
 document.getElementById('nextDayButton').addEventListener('click', (e) => {
-    updateDayByAmount(1);
+    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+        updateDayByAmount(1);
+    }
 })
 
 document.getElementById('addButton').addEventListener('click', (e) => {
@@ -50,12 +82,12 @@ document.getElementById('addButton').addEventListener('click', (e) => {
 
     localStorage.setItem('days', JSON.stringify(days));
 
-    location.reload()
-    // addRow({start: time});
+    location.reload();
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
-    saveRows();
+    saveDays();
+    checkRowsEqual();
 });
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
@@ -88,9 +120,16 @@ document.getElementById('downloadButton').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        saveRows();
+        saveDays();
+        checkRowsEqual();
     }
-})
+});
+
+window.addEventListener('beforeunload', (e) => {
+    if (!checkRowsEqual()) {
+        e.preventDefault();
+    }
+});
 
 const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     let rowTemplate = document.getElementById('rowTemplate');
@@ -104,8 +143,16 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.notes').value = notes;
     newRow.hidden = false;
 
+
+    Array.from(newRow.getElementsByTagName('input')).map(input => {
+        input.addEventListener('blur', (e) => {
+            checkRowsEqual();
+        })
+    });
+
     newRow.querySelector('.remove').addEventListener('click', (e) => {
         if (confirm("This will delete the entry with these notes: " + newRow.querySelector('.notes').value)) {
+            let days = JSON.parse(localStorage.getItem('days'));
             newRow.remove();
             days[date] = days[date].filter((entry) => entry.id !== id);
             localStorage.setItem('days', JSON.stringify(days));
@@ -113,9 +160,13 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     });
 };
 
-const saveRows = () => {
+const saveDays = () => {
     let days = JSON.parse(localStorage.getItem('days'));
+    days[date] = getRowsData();
+    localStorage.setItem('days', JSON.stringify(days));
+}
 
+const getRowsData = () => {
     let rowElements = document.getElementById('rows').children;
     
     let newEntries = [];
@@ -129,9 +180,7 @@ const saveRows = () => {
         });
         idCount++;
     });
-    days[date] = newEntries;
-
-    localStorage.setItem('days', JSON.stringify(days));
+    return newEntries;
 }
 
 const addRowsForDay = (date) => {
