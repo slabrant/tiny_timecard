@@ -66,7 +66,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     if (days[date][newEntryId-1]) {
         let entryStop = days[date][newEntryId - 1].stop;
         if (entryStop === '') {
-            entryStop = time;
+            days[date][newEntryId - 1].stop = time;
         }
         else {
             time = entryStop;
@@ -122,12 +122,6 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         saveDays();
         checkRowsEqual();
-    }
-});
-
-window.addEventListener('beforeunload', (e) => {
-    if (!checkRowsEqual()) {
-        e.preventDefault();
     }
 });
 
