@@ -22,7 +22,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
 
-    let days = JSON.parse(localStorage.getItem('days'));
+    let days = getDays();
     let newEntryId = days[date].length;
     if (days[date][newEntryId-1]?.start === time) {
         return;
@@ -43,38 +43,31 @@ document.getElementById('addButton').addEventListener('click', (e) => {
         notes: ''
     });
 
-    localStorage.setItem('days', JSON.stringify(days));
+    saveDays(days);
     location.reload();
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
-    saveDays();
+    savePageData();
     checkRowsEqual();
 });
 
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        saveDays();
+        savePageData();
         checkRowsEqual();
     }
 });
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
-    let days = JSON.parse(localStorage.getItem('days'));
-
-    let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
-        if (0 < days[key].length) 
-            newDays[key] = days[key];
-
-        return newDays;
-    }, {});
+    let days = getDays();
 
     let csv = 'data:text/csv;charset=utf-8,\uFEFF'
-    for (let date in sortedDays) {
+    for (let date in days) {
         csv += date + '\n'
-        for (let entryKey in sortedDays[date]) {
-            const entry = sortedDays[date][entryKey];
+        for (let entryKey in days[date]) {
+            const entry = days[date][entryKey];
             const notes = entry['notes'].replace("\"", "\"\"");
             csv += encodeURIComponent(`"${entry['start']}","${entry['stop']}","${notes}"\n`);
         }
@@ -88,7 +81,60 @@ document.getElementById('downloadButton').addEventListener('click', (e) => {
 });
 
 document.getElementById('uploadButton').addEventListener('change', (e) => {
-    console.log(e.target.files[0])
+    const [file] = e.target.files;
+    const reader = new FileReader();
+
+    reader.addEventListener('load', () => {
+        let newDays = {};
+        let date = '';
+        let id = 0;
+        reader.result.split(/\r?\n/).map(line => {
+            let start = '';
+            let stop = '';
+            line = line.replaceAll('"', '');
+
+            if (5 < line.indexOf(','))
+                line = line.substr(0, line.indexOf(','));
+
+            if (line.indexOf(',') === -1) {
+                let datePieces = line.split('-');
+                let newDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2]);
+                if (newDate instanceof Date && !isNaN(newDate)) {
+                    date = dateFormat.format(newDate);
+                    newDays[date] = [];
+                    id = 0;
+                }
+            }
+            else if (date !== '') {
+                start = line.substr(0, line.indexOf(','));
+                line = line.substr(line.indexOf(',') + 1);
+                stop = line.substr(0, line.indexOf(','));
+                notes = line.substr(line.indexOf(',') + 1);
+
+                newDays[date].push({
+                    id: id,
+                    start: start,
+                    stop: stop,
+                    notes: notes,
+                });
+                id++;
+            }
+        });
+
+        let days = getDays();
+        let areRowsEqual = checkObjectsEqual(newDays, days);
+        if (areRowsEqual) {
+            alert('There is no new data to upload.');
+        }
+        else if (confirm("Warning: This will overwrite your data. Recovery is not possible. Would you like to continue?")) {
+            saveDays(newDays);
+        }
+    });
+
+    if (file) {
+        reader.readAsText(file);
+        e.target.value = '';
+    }
 });
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -121,11 +167,12 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     });
 
     newRow.querySelector('.remove').addEventListener('click', (e) => {
-        if (confirm("This will delete the entry with these notes: " + newRow.querySelector('.notes').value)) {
-            let days = JSON.parse(localStorage.getItem('days'));
+        // let start = newRow.querySelector('.start').value; ${start} TODO: This needs a human-readable time format to be used.
+        if (confirm(`This will delete this entry. Would you like to continue?`)) {
+            let days = getDays();
             newRow.remove();
             days[date] = days[date].filter((entry) => entry.id !== id);
-            localStorage.setItem('days', JSON.stringify(days));
+            saveDays(days);
         }
     });
 };
@@ -133,28 +180,24 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 const addRowsForDay = (date) => {
     sessionStorage.setItem('date', date);
 
-    let days = JSON.parse(localStorage.getItem('days'));
-
-    if (!days) 
-        days = {};
-    if (!days?.[date]) 
-        days[date] = [];
-
-    localStorage.setItem('days', JSON.stringify(days));
+    let days = getDays();
 
     document.getElementById('rows').innerHTML = '';
 
-    days[date].map((entry) => {
+    days[date]?.map((entry) => {
         addRow(entry);
     })
 };
 
+const checkObjectsEqual = (obj1, obj2) => {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+};
+
 const checkRowsEqual = () => {
     let pageData = getRowsData();
-    let days = JSON.parse(localStorage.getItem('days'));
-    let storedData = days[date];
+    let days = getDays();
 
-    let areRowsEqual = JSON.stringify(pageData) === JSON.stringify(storedData);
+    let areRowsEqual = checkObjectsEqual(pageData, days[date]);
     
     if (areRowsEqual) {
         document.getElementById('saveButton').classList.remove('primary');
@@ -164,6 +207,17 @@ const checkRowsEqual = () => {
     }
 
     return areRowsEqual;
+};
+
+const getDays = () => {
+    let days = JSON.parse(localStorage.getItem('days'));
+
+    if (!days)
+        days = {};
+    if (!days[date])
+        days[date] = [];
+
+    return days;
 };
 
 const getRowsData = () => {
@@ -183,10 +237,22 @@ const getRowsData = () => {
     return newEntries;
 };
 
-const saveDays = () => {
-    let days = JSON.parse(localStorage.getItem('days'));
+const saveDays = (days) => {
+    let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
+        if (0 < days[key].length) 
+            newDays[key] = days[key];
+        return newDays;
+    }, {});
+
+    localStorage.setItem('days', JSON.stringify(sortedDays));
+};
+
+const savePageData = () => {
+    let days = getDays();
+
     days[date] = getRowsData();
-    localStorage.setItem('days', JSON.stringify(days));
+
+    saveDays(days);
 };
 
 const updateDayByAmount = (amount) => {
