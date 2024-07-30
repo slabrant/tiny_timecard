@@ -9,10 +9,6 @@ const timeFormat = new Intl.DateTimeFormat('en-CA', {
     hour12: false,
 });
 
-/**
- * this is a slow and lazy way to do this, but also short and easy to understand
- * @returns boolean
- */
 const checkRowsEqual = () => {
     let pageData = getRowsData();
     let days = JSON.parse(localStorage.getItem('days'));
@@ -31,9 +27,8 @@ const checkRowsEqual = () => {
 }
 
 document.getElementById('backDayButton').addEventListener('click', (e) => {
-    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
         updateDayByAmount(-1);
-    }
 })
 
 document.getElementById('dateInput').addEventListener('change', (e) => {
@@ -47,9 +42,8 @@ document.getElementById('dateInput').addEventListener('change', (e) => {
 });
 
 document.getElementById('nextDayButton').addEventListener('click', (e) => {
-    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
         updateDayByAmount(1);
-    }
 })
 
 document.getElementById('addButton').addEventListener('click', (e) => {
@@ -63,12 +57,11 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     }
     if (days[date][newEntryId-1]) {
         let entryStop = days[date][newEntryId - 1].stop;
-        if (entryStop === '') {
+
+        if (entryStop === '') 
             days[date][newEntryId - 1].stop = time;
-        }
-        else {
+        else 
             time = entryStop;
-        }
     }
 
     days[date].push({
@@ -79,7 +72,6 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     });
 
     localStorage.setItem('days', JSON.stringify(days));
-
     location.reload();
 });
 
@@ -90,10 +82,11 @@ document.getElementById('saveButton').addEventListener('click', (e) => {
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
     let days = JSON.parse(localStorage.getItem('days'));
+
     let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
-        if (0 < days[key].length) {
+        if (0 < days[key].length) 
             newDays[key] = days[key];
-        }
+
         return newDays;
     }, {});
 
@@ -108,11 +101,9 @@ document.getElementById('downloadButton').addEventListener('click', (e) => {
     }
     
     const now = new Date;
-    const todaysDate = dateFormat.format(now);
-    const time = timeFormat.format(now);
     const anchor = document.createElement('a');
     anchor.href = csv;
-    anchor.download = `tiny_time_${todaysDate}_${time}.csv`;
+    anchor.download = `tiny_time_${dateFormat.format(now)}_${timeFormat.format(now)}.csv`;
     anchor.click();
 });
 
@@ -139,7 +130,6 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.stop').value = stop;
     newRow.querySelector('.notes').value = notes;
     newRow.hidden = false;
-
 
     Array.from(newRow.getElementsByTagName('input')).map(input => {
         input.addEventListener('blur', (e) => {
@@ -184,14 +174,15 @@ const addRowsForDay = (date) => {
     sessionStorage.setItem('date', date);
 
     let days = JSON.parse(localStorage.getItem('days'));
-    if (!days) {
+
+    if (!days) 
         days = {};
-    };
-    if (!days?.[date]) days[date] = [];
+    if (!days?.[date]) 
+        days[date] = [];
+
     localStorage.setItem('days', JSON.stringify(days));
 
-    let rowsElement = document.getElementById('rows');
-    rowsElement.innerHTML = '';
+    document.getElementById('rows').innerHTML = '';
 
     days[date].map((entry) => {
         addRow(entry);
