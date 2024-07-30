@@ -21,12 +21,10 @@ const checkRowsEqual = () => {
     let areRowsEqual = JSON.stringify(pageData) === JSON.stringify(storedData);
     
     if (areRowsEqual) {
-        document.getElementById('saveButton').classList.add('secondary');
-        document.getElementById('saveButton').classList.remove('warning');
+        document.getElementById('saveButton').classList.remove('primary');
     }
     else {
-        document.getElementById('saveButton').classList.add('warning');
-        document.getElementById('saveButton').classList.remove('secondary');
+        document.getElementById('saveButton').classList.add('primary');
     }
 
     return areRowsEqual;
