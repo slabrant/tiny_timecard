@@ -6,21 +6,21 @@
         <link rel="stylesheet" href="css.css">
     </head>
     <body>
-        <button id="backDayButton">◀</button>
+        <button id="backDayButton" title="Previous Day">◀</button>
         <input id="dateInput" type="date">
-        <button id="nextDayButton">▶</button>
-        <button id="addButton">+ New Line</button>
-        <button id="saveButton">Save</button>
-        <button id="downloadButton">Download CSV</button>
-        <label for="uploadButton">Upload CSV</label>
-        <input type="file" id="uploadButton" accept=".csv" style="opacity: 0;">
+        <button id="nextDayButton" title="Next Day">▶</button>
+        <button id="addButton" title="Add Row">+</button>
+        <button id="saveButton" title="Save All">🖫</button>
+        <button id="downloadButton" title="Download as CSV">⭳</button>
+        <label for="uploadButton" title="Upload as CSV">⭱</label>
+        <input type="file" id="uploadButton" accept=".csv" hidden>
         <hr></hr>
         <div id="rows"></div>
         <div id="rowTemplate" hidden>
-            <input class="start time" type="time">
-            <input class="stop time" type="time">
-            <input class="notes" type="text">
-            <button class="remove">X</button>
+            <input class="start time" type="time" title="Start Time">
+            <input class="stop time" type="time" title="Stop Time">
+            <input class="notes" type="text" title="Notes">
+            <button class="remove" title="Delete Row">X</button>
         </div>
     </body>
 </html>
