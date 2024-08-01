@@ -1,13 +1,13 @@
 document.getElementById('backDayButton').addEventListener('click', (e) => {
-    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
-        updateDayByAmount(-1);
-})
+    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+        updateDateByAmount(-1);
+});
 
 document.getElementById('dateInput').addEventListener('change', (e) => {
-    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
         date = e.target.value;
-        addRowsForDay(date);
-        checkRowsEqual();
+        setPageData(date);
+        checkDaysEqual();
     }
     else {
         e.target.value = date;
@@ -15,60 +15,60 @@ document.getElementById('dateInput').addEventListener('change', (e) => {
 });
 
 document.getElementById('nextDayButton').addEventListener('click', (e) => {
-    if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
-        updateDayByAmount(1);
-})
+    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+        updateDateByAmount(1);
+});
 
 document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
-
-    let day = getDay(date);
+    let entries = getEntries(date);
     let newEntryId = day.length;
-    if (day[newEntryId-1]?.start === time) {
+
+    if (entries[newEntryId-1]?.start === time)
         return;
-    }
-    if (day[newEntryId-1]) {
-        let entryStop = day[newEntryId - 1].stop;
+
+    if (entries[newEntryId-1]) {
+        let entryStop = entries[newEntryId - 1].stop;
 
         if (entryStop === '') 
-            day[newEntryId - 1].stop = time;
+            entries[newEntryId - 1].stop = time;
         else 
             time = entryStop;
     }
 
-    day.push({
+    entries.push({
         id: newEntryId,
         start: time,
         stop: '',
         notes: ''
     });
 
-    saveDay(day, date);
+    saveEntries(entries, date);
     location.reload();
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
-    saveDay(getRowsData(), date);
-    checkRowsEqual();
+    saveDay(getPageData(), date);
+    checkDaysEqual();
 });
 
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        saveDay(getRowsData(), date);
-        checkRowsEqual();
+        saveDay(getPageData(), date);
+        checkDaysEqual();
     }
 });
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
     let days = getDays();
+    let csv = 'data:text/csv;charset=utf-8,\uFEFF';
 
-    let csv = 'data:text/csv;charset=utf-8,\uFEFF'
     for (let date in days) {
         csv += date + '\n'
-        for (let entryKey in days[date]) {
-            const entry = days[date][entryKey];
+        for (let entryKey in days[date].entries) {
+            const entry = days[date].entries[entryKey];
             const notes = entry['notes'].replace("\"", "\"\"");
             csv += encodeURIComponent(`"${entry['start']}","${entry['stop']}","${notes}"\n`);
         }
@@ -89,6 +89,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
         let newDays = {};
         let date = '';
         let id = 0;
+
         reader.result.split(/\r?\n/).map(line => {
             let start = '';
             let stop = '';
@@ -102,7 +103,10 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                 let newDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2]);
                 if (newDate instanceof Date && !isNaN(newDate)) {
                     date = dateFormat.format(newDate);
-                    newDays[date] = [];
+                    newDays[date] = {
+                        "entries": [],
+                        "notes": "",
+                    };
                     id = 0;
                 }
             }
@@ -112,7 +116,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                 stop = line.substr(0, line.indexOf(','));
                 notes = line.substr(line.indexOf(',') + 1);
 
-                newDays[date].push({
+                newDays[date].entries.push({
                     id: id,
                     start: start,
                     stop: stop,
@@ -121,14 +125,19 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                 id++;
             }
         });
+                    
+        let reducedDays = Object.keys(newDays).sort().reduce((days, key) => {
+            if (0 < newDays[key].entries.length || 0 < newDays[key].notes.length)
+                days[key] = newDays[key];
+            return days;
+        }, {});
 
-        let areRowsEqual = checkObjectsEqual(newDays, getDays());
-        if (areRowsEqual) {
+        let areRowsEqual = checkObjectsEqual(reducedDays, getDays());
+
+        if (areRowsEqual)
             alert('There is no new data to upload.');
-        }
-        else if (confirm("Warning: This will overwrite your data. Recovery is not possible. Would you like to continue?")) {
-            saveDays(newDays);
-        }
+        else if (confirm("Warning: This will overwrite your data. Recovery is not possible. Would you like to continue?"))
+            saveDays(reducedDays);
     });
 
     if (file) {
@@ -136,6 +145,10 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
         e.target.value = '';
     }
 });
+
+document.getElementById('dayNotes').addEventListener('blur', (e) => {
+    checkDaysEqual();
+})
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
@@ -162,7 +175,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 
     Array.from(newRow.getElementsByTagName('input')).map(input => {
         input.addEventListener('blur', (e) => {
-            checkRowsEqual();
+            checkDaysEqual();
         })
     });
 
@@ -170,38 +183,36 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
         // let start = newRow.querySelector('.start').value; ${start} TODO: This needs a human-readable time format to be used.
         if (confirm(`This will delete this entry. Would you like to continue?`)) {
             newRow.remove();
-            saveDay(getDay(date).filter((entry) => entry.id !== id), date);
+            const entries = getEntries(date).filter((entry) => entry.id !== id);
+            saveEntries(entries, date);
         }
     });
 };
 
-const addRowsForDay = (date) => {
+const setPageData = (date) => {
     sessionStorage.setItem('date', date);
-
     let day = getDay(date);
 
     document.getElementById('rows').innerHTML = '';
 
-    day?.map((entry) => {
+    day.entries.map((entry) => {
         addRow(entry);
-    })
+    });
+
+    document.getElementById('dayNotes').value = day.notes;
 };
 
 const checkObjectsEqual = (obj1, obj2) => {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
 };
 
-const checkRowsEqual = () => {
-    let pageData = getRowsData();
-
-    let areRowsEqual = checkObjectsEqual(pageData, getDay(date));
+const checkDaysEqual = () => {
+    let areRowsEqual = checkObjectsEqual(getPageData(), getDay(date));
     
-    if (areRowsEqual) {
+    if (areRowsEqual)
         document.getElementById('saveButton').classList.remove('primary');
-    }
-    else {
+    else
         document.getElementById('saveButton').classList.add('primary');
-    }
 
     return areRowsEqual;
 };
@@ -209,8 +220,12 @@ const checkRowsEqual = () => {
 const getDay = (date) => {
     let days = JSON.parse(localStorage.getItem('days')) || {};
 
-    if (!days[date])
-        days[date] = [];
+    if (!days[date]) {
+        days[date] = {
+            "entries": [],
+            "notes": "",
+        };
+    }
 
     return days[date];
 };
@@ -219,7 +234,11 @@ const getDays = () => {
     return JSON.parse(localStorage.getItem('days')) || {};
 };
 
-const getRowsData = () => {
+const getEntries = (date) => {
+    return JSON.parse(localStorage.getItem('days'))?.entries || [];
+};
+
+const getPageData = () => {
     let rowElements = document.getElementById('rows').children;
     
     let newEntries = [];
@@ -233,10 +252,32 @@ const getRowsData = () => {
         });
         idCount++;
     });
-    return newEntries;
+
+    let dayNotes = document.getElementById('dayNotes').value;
+
+    return {
+        "entries": newEntries,
+        "notes": dayNotes,
+    };
+};
+
+const saveEntries = (entries, date) => {
+    if (entries.length === 0)
+        return;
+
+    let days = getDays();
+    if (!days[date])
+        days[date] = { "notes": "" };
+
+    days[date].entries = entries;
+
+    localStorage.setItem('days', JSON.stringify(days));
 };
 
 const saveDay = (day, date) => {
+    if (day.entries.length === 0 && day.notes.length === 0)
+        return;
+
     let days = getDays();
     days[date] = day;
 
@@ -244,24 +285,19 @@ const saveDay = (day, date) => {
 };
 
 const saveDays = (days) => {
-    let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
-        if (0 < days[key].length) 
-            newDays[key] = days[key];
-        return newDays;
-    }, {});
-
-    localStorage.setItem('days', JSON.stringify(sortedDays));
+    localStorage.setItem('days', JSON.stringify(days));
+    setPageData(date);
 };
 
-const updateDayByAmount = (amount) => {
+const updateDateByAmount = (amount) => {
     let datePieces = date.split('-');
     let changedDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2] + +amount);
     date = dateFormat.format(changedDate);
     document.getElementById('dateInput').value = date;
-    addRowsForDay(date);
-    checkRowsEqual();
-}
+    setPageData(date);
+    checkDaysEqual();
+};
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 document.getElementById('dateInput').value = date;
-addRowsForDay(date);
+setPageData(date);
