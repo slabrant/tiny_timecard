@@ -5,18 +5,17 @@ button, label {
     border: #000, 1px, solid;
     background-color: #b0b0b0;
     transition: background-color 0.1s ease; /* Smooth transition */
-    font: 0.8em sans-serif;
-    width: 24px;
-    height: 24px;
-    font-weight: bold;
+    font: 12pt sans-serif;
+    height: 1.5em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
 }
 
 label {
     display: inline-block;
     align-content: center;
     text-align: center;
-    width: 22.08px;
-    height: 22.08px;
+    height: calc(0.95 * 1.5em);
 }
 
 button:hover, label:hover {
