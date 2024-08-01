@@ -15,7 +15,7 @@ label {
     display: inline-block;
     align-content: center;
     text-align: center;
-    height: calc(0.95 * 1.5em);
+    height: calc(0.92 * 1.5em);
 }
 
 button:hover, label:hover {
