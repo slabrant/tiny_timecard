@@ -23,7 +23,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
     let entries = getEntries(date);
-    let newEntryId = day.length;
+    let newEntryId = entries.length;
 
     if (entries[newEntryId-1]?.start === time)
         return;
@@ -222,7 +222,7 @@ const getDays = () => {
 };
 
 const getEntries = (date) => {
-    return JSON.parse(localStorage.getItem('days'))?.entries || [];
+    return getDay(date).entries || [];
 };
 
 const getPageData = () => {
