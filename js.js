@@ -7,6 +7,7 @@ document.getElementById('dateInput').addEventListener('change', (e) => {
     if (checkRowsEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
         date = e.target.value;
         addRowsForDay(date);
+        checkRowsEqual();
     }
     else {
         e.target.value = date;
@@ -261,6 +262,7 @@ const updateDayByAmount = (amount) => {
     date = dateFormat.format(changedDate);
     document.getElementById('dateInput').value = date;
     addRowsForDay(date);
+    checkRowsEqual();
 }
 
 const now = new Date;
