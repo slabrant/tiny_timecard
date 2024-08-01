@@ -189,19 +189,6 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     });
 };
 
-const setPageData = (date) => {
-    sessionStorage.setItem('date', date);
-    let day = getDay(date);
-
-    document.getElementById('rows').innerHTML = '';
-
-    day.entries.map((entry) => {
-        addRow(entry);
-    });
-
-    document.getElementById('dayNotes').value = day.notes;
-};
-
 const checkObjectsEqual = (obj1, obj2) => {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
 };
@@ -287,6 +274,19 @@ const saveDay = (day, date) => {
 const saveDays = (days) => {
     localStorage.setItem('days', JSON.stringify(days));
     setPageData(date);
+};
+
+const setPageData = (date) => {
+    sessionStorage.setItem('date', date);
+    let day = getDay(date);
+
+    document.getElementById('rows').innerHTML = '';
+
+    day.entries.map((entry) => {
+        addRow(entry);
+    });
+
+    document.getElementById('dayNotes').value = day.notes;
 };
 
 const updateDateByAmount = (amount) => {
