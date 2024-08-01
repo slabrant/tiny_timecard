@@ -23,40 +23,40 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
 
-    let days = getDays();
-    let newEntryId = days[date].length;
-    if (days[date][newEntryId-1]?.start === time) {
+    let day = getDay(date);
+    let newEntryId = day.length;
+    if (day[newEntryId-1]?.start === time) {
         return;
     }
-    if (days[date][newEntryId-1]) {
-        let entryStop = days[date][newEntryId - 1].stop;
+    if (day[newEntryId-1]) {
+        let entryStop = day[newEntryId - 1].stop;
 
         if (entryStop === '') 
-            days[date][newEntryId - 1].stop = time;
+            day[newEntryId - 1].stop = time;
         else 
             time = entryStop;
     }
 
-    days[date].push({
+    day.push({
         id: newEntryId,
         start: time,
         stop: '',
         notes: ''
     });
 
-    saveDays(days);
+    saveDay(day, date);
     location.reload();
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
-    savePageData();
+    saveDay(getRowsData(), date);
     checkRowsEqual();
 });
 
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        savePageData();
+        saveDay(getRowsData(), date);
         checkRowsEqual();
     }
 });
@@ -122,8 +122,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
             }
         });
 
-        let days = getDays();
-        let areRowsEqual = checkObjectsEqual(newDays, days);
+        let areRowsEqual = checkObjectsEqual(newDays, getDays());
         if (areRowsEqual) {
             alert('There is no new data to upload.');
         }
@@ -170,10 +169,8 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.remove').addEventListener('click', (e) => {
         // let start = newRow.querySelector('.start').value; ${start} TODO: This needs a human-readable time format to be used.
         if (confirm(`This will delete this entry. Would you like to continue?`)) {
-            let days = getDays();
             newRow.remove();
-            days[date] = days[date].filter((entry) => entry.id !== id);
-            saveDays(days);
+            saveDay(getDay(date).filter((entry) => entry.id !== id), date);
         }
     });
 };
@@ -181,11 +178,11 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 const addRowsForDay = (date) => {
     sessionStorage.setItem('date', date);
 
-    let days = getDays();
+    let day = getDay(date);
 
     document.getElementById('rows').innerHTML = '';
 
-    days[date]?.map((entry) => {
+    day?.map((entry) => {
         addRow(entry);
     })
 };
@@ -196,9 +193,8 @@ const checkObjectsEqual = (obj1, obj2) => {
 
 const checkRowsEqual = () => {
     let pageData = getRowsData();
-    let days = getDays();
 
-    let areRowsEqual = checkObjectsEqual(pageData, days[date]);
+    let areRowsEqual = checkObjectsEqual(pageData, getDay(date));
     
     if (areRowsEqual) {
         document.getElementById('saveButton').classList.remove('primary');
@@ -210,15 +206,17 @@ const checkRowsEqual = () => {
     return areRowsEqual;
 };
 
-const getDays = () => {
-    let days = JSON.parse(localStorage.getItem('days'));
+const getDay = (date) => {
+    let days = JSON.parse(localStorage.getItem('days')) || {};
 
-    if (!days)
-        days = {};
     if (!days[date])
         days[date] = [];
 
-    return days;
+    return days[date];
+};
+
+const getDays = () => {
+    return JSON.parse(localStorage.getItem('days')) || {};
 };
 
 const getRowsData = () => {
@@ -238,6 +236,13 @@ const getRowsData = () => {
     return newEntries;
 };
 
+const saveDay = (day, date) => {
+    let days = getDays();
+    days[date] = day;
+
+    localStorage.setItem('days', JSON.stringify(days));
+};
+
 const saveDays = (days) => {
     let sortedDays = Object.keys(days).sort().reduce((newDays, key) => {
         if (0 < days[key].length) 
@@ -246,14 +251,6 @@ const saveDays = (days) => {
     }, {});
 
     localStorage.setItem('days', JSON.stringify(sortedDays));
-};
-
-const savePageData = () => {
-    let days = getDays();
-
-    days[date] = getRowsData();
-
-    saveDays(days);
 };
 
 const updateDayByAmount = (amount) => {
@@ -265,11 +262,6 @@ const updateDayByAmount = (amount) => {
     checkRowsEqual();
 }
 
-const now = new Date;
-let date = sessionStorage.getItem('date');
-if (!date) 
-    date = dateFormat.format(now);
-
+let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 document.getElementById('dateInput').value = date;
-
 addRowsForDay(date);
