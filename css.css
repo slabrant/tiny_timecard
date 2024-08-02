@@ -27,6 +27,12 @@ button:hover, label:hover {
     color: #fff;
 }
 
+.lowerRight {
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
+}
+
 hr {
     margin-top: 0;
     margin-bottom: 10px;

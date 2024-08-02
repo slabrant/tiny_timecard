@@ -14,12 +14,13 @@
         <button id="downloadButton" title="Download as CSV">Download</button>
         <label for="uploadButton" title="Upload as CSV" class="buttonLabel">Upload</label>
         <input type="file" id="uploadButton" accept=".csv" hidden>
-        <label for="pomodoro">Pomodoro:</label>
-        <input type="checkbox" id="pomodoro">
+        <label for="pomodoroInput">Pomodoro:</label>
+        <input type="checkbox" id="pomodoroInput">
         <hr></hr>
         <div id="rows"></div>
         <label for="dayNotes">Notes:</label>
         <textarea id="dayNotes"></textarea>
+        <div id="pomodoroDisplay" class="lowerRight" hidden>Click somewhere to see pomodoro time.</div>
         <div id="rowTemplate" hidden>
             <input class="start time" type="time" title="Start Time">
             <input class="stop time" type="time" title="Stop Time">

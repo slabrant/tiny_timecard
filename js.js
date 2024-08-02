@@ -152,9 +152,10 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
     }
 });
 
-document.getElementById('pomodoro').addEventListener('click', (e) => {
-    localStorage.setItem('pomodoroOn', e.target.checked);
+document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
+    localStorage.setItem('pomodoroOn', pomodoroOn);
+    document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
 });
 
 document.getElementById('dayNotes').addEventListener('blur', (e) => {
@@ -170,6 +171,11 @@ const timeFormat = new Intl.DateTimeFormat('en-CA', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+});
+const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
 });
 
 const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
@@ -310,17 +316,25 @@ const setPomodoroTimer = (start) => {
     if (!pomodoroStarted) {
         pomodoroStarted = true;
 
-        let pomodoroTime = 25;
         let pomodoroCount = localStorage.getItem('pomodoroCount') || 0;
-        if ((pomodoroCount/2 === Math.round(pomodoroCount/2)) || pomodoroCount === 7)
+        let pomodoroTime = 25;
+        let pomodoroType = "Work";
+        if (+pomodoroCount === 7) {
+            pomodoroType = "Break";
+        }
+        else if (pomodoroCount/2 !== Math.round(pomodoroCount/2)) {
             pomodoroTime = 5;
-
-        console.log(pomodoroTime)
+            pomodoroType = "Break";
+        }
 
         let lastStartTimeArr = start.split(':');
         let now = new Date;
         let nowMs = Date.now();
-        let msAfterStop = (new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1])) - nowMs;
+        let newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
+        let msAfterStop = newDate - nowMs;
+
+        let pomodoroDisplay = document.getElementById('pomodoroDisplay');
+        pomodoroDisplay.innerText = pomodoroType + " until " + displayTimeFormat.format(newDate);
 
         setTimeout(() => {
             const context = new AudioContext();
@@ -356,6 +370,8 @@ const updateDateByAmount = (amount) => {
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
 let pomodoroStarted = false;
-document.getElementById('pomodoro').checked = pomodoroOn;
+document.getElementById('pomodoroInput').checked = pomodoroOn;
+document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+
 document.getElementById('dateInput').value = date;
 setPageData(date);
