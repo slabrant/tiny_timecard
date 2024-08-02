@@ -274,9 +274,6 @@ const resetPomodoroTimer = () => {
 };
 
 const saveEntries = (entries, date) => {
-    if (entries.length === 0)
-        return;
-
     let days = getDays();
     if (!days[date])
         days[date] = { "notes": "" };
