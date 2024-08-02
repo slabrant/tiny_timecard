@@ -22,30 +22,36 @@ document.getElementById('nextDayButton').addEventListener('click', (e) => {
 document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
-    let entries = getEntries(date);
-    let newEntryId = entries.length;
+    let entries = getPageData().entries;
+    const newEntryId = entries.length;
+    const previousEntryId = newEntryId - 1;
 
-    if (entries[newEntryId-1]?.start === time)
+    if (entries[previousEntryId]?.start === time)
         return;
 
     if (entries[newEntryId-1]) {
-        let entryStop = entries[newEntryId - 1].stop;
+        const entryStop = entries[previousEntryId].stop;
 
         if (entryStop === '') 
-            entries[newEntryId - 1].stop = time;
+            entries[previousEntryId].stop = time;
         else 
             time = entryStop;
+
+        document.getElementById('row_' + previousEntryId).querySelector('.stop').value = time;
     }
 
-    entries.push({
+    const newEntry = {
         id: newEntryId,
         start: time,
         stop: '',
         notes: ''
-    });
-
+    };
+    entries.push(newEntry);
+    addRow(newEntry);
+    
     saveEntries(entries, date);
-    location.reload();
+    setPomodoroTimer(time);
+    pomodoroStarted = false;
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
@@ -146,9 +152,14 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
     }
 });
 
+document.getElementById('pomodoro').addEventListener('click', (e) => {
+    localStorage.setItem('pomodoroOn', e.target.checked);
+    pomodoroOn = e.target.checked;
+});
+
 document.getElementById('dayNotes').addEventListener('blur', (e) => {
     checkDaysEqual();
-})
+});
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
@@ -183,7 +194,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
         // let start = newRow.querySelector('.start').value; ${start} TODO: This needs a human-readable time format to be used.
         if (confirm(`This will delete this entry. Would you like to continue?`)) {
             newRow.remove();
-            const entries = getEntries(date).filter((entry) => entry.id !== id);
+            const entries = getPageData(date).entries.filter((entry) => entry.id !== id);
             saveEntries(entries, date);
         }
     });
@@ -259,6 +270,7 @@ const saveEntries = (entries, date) => {
     days[date].entries = entries;
 
     localStorage.setItem('days', JSON.stringify(days));
+    checkDaysEqual();
 };
 
 const saveDay = (day, date) => {
@@ -269,6 +281,7 @@ const saveDay = (day, date) => {
     days[date] = day;
 
     localStorage.setItem('days', JSON.stringify(days));
+    checkDaysEqual();
 };
 
 const saveDays = (days) => {
@@ -279,14 +292,56 @@ const saveDays = (days) => {
 const setPageData = (date) => {
     sessionStorage.setItem('date', date);
     let day = getDay(date);
-
     document.getElementById('rows').innerHTML = '';
+    document.getElementById('dayNotes').value = day.notes;
 
     day.entries.map((entry) => {
         addRow(entry);
     });
 
-    document.getElementById('dayNotes').value = day.notes;
+    if (pomodoroOn) {
+        document.addEventListener('click', () => {
+            setPomodoroTimer(day.entries[day.entries.length - 1].start);
+        })
+    }
+};
+
+const setPomodoroTimer = (start) => {
+    if (!pomodoroStarted) {
+        pomodoroStarted = true;
+
+        let pomodoroTime = 25;
+        let pomodoroCount = localStorage.getItem('pomodoroCount') || 0;
+        if ((pomodoroCount/2 === Math.round(pomodoroCount/2)) || pomodoroCount === 7)
+            pomodoroTime = 5;
+
+        console.log(pomodoroTime)
+
+        let lastStartTimeArr = start.split(':');
+        let now = new Date;
+        let nowMs = Date.now();
+        let msAfterStop = (new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1])) - nowMs;
+
+        setTimeout(() => {
+            const context = new AudioContext();
+            const oscillator = context.createOscillator();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(850, context.currentTime);
+
+            const gain = context.createGain();
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+
+            oscillator.start();
+
+            gain.gain.setValueAtTime(1, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 2);
+
+            oscillator.stop(context.currentTime + 2);
+            localStorage.setItem('pomodoroCount', ++pomodoroCount % 8);
+        }, [msAfterStop]);
+    }
 };
 
 const updateDateByAmount = (amount) => {
@@ -299,5 +354,8 @@ const updateDateByAmount = (amount) => {
 };
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
+let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
+let pomodoroStarted = false;
+document.getElementById('pomodoro').checked = pomodoroOn;
 document.getElementById('dateInput').value = date;
 setPageData(date);

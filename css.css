@@ -1,4 +1,4 @@
-button, label {
+button, .buttonLabel {
     margin-right: 4px;
     margin-bottom: 4px;
     border-radius: 5px;
@@ -11,7 +11,7 @@ button, label {
     padding-right: 0.4em;
 }
 
-label {
+.buttonLabel {
     display: inline-block;
     align-content: center;
     text-align: center;

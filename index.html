@@ -12,11 +12,13 @@
         <button id="addButton" title="Add Row">+</button>
         <button id="saveButton" title="Save All">Save</button>
         <button id="downloadButton" title="Download as CSV">Download</button>
-        <label for="uploadButton" title="Upload as CSV">Upload</label>
+        <label for="uploadButton" title="Upload as CSV" class="buttonLabel">Upload</label>
         <input type="file" id="uploadButton" accept=".csv" hidden>
+        <label for="pomodoro">Pomodoro:</label>
+        <input type="checkbox" id="pomodoro">
         <hr></hr>
         <div id="rows"></div>
-        <div>Notes:</div>
+        <label for="dayNotes">Notes:</label>
         <textarea id="dayNotes"></textarea>
         <div id="rowTemplate" hidden>
             <input class="start time" type="time" title="Start Time">
