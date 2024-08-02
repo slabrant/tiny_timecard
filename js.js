@@ -238,8 +238,8 @@ const getDays = () => {
     return JSON.parse(localStorage.getItem('days')) || {};
 };
 
-const getEntries = (date) => {
-    return getDay(date).entries || [];
+const getEntriesToday = () => {
+    return getDay(sessionStorage.getItem('date')).entries || [];
 };
 
 const getPageData = () => {
@@ -264,6 +264,34 @@ const getPageData = () => {
         "notes": dayNotes,
     };
 };
+
+const getPomodoroMessageAndDelay = (entryId) => {
+    const pomodoroCount = entryId % 8;
+    let pomodoroTime = 25;
+    let pomodoroType = "Work";
+    if (+pomodoroCount === 7) {
+        pomodoroType = "Break";
+    }
+    else if (pomodoroCount/2 !== Math.round(pomodoroCount/2)) {
+        pomodoroTime = 5;
+        pomodoroType = "Break";
+    }
+
+    let entries = getEntriesToday();
+    let latestEntry = entries[entries.length - 1];
+    if (!latestEntry?.start)
+        return;
+
+    const lastStartTimeArr = latestEntry.start.split(':');
+    const now = new Date;
+    const nowMs = Date.now();
+    const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
+    const delay = newDate - nowMs;
+
+    const message = pomodoroType + " until " + displayTimeFormat.format(newDate);
+
+    return [message, delay, pomodoroType];
+}
 
 const resetPomodoroTimer = () => {
     if (pomodoroTimeout) {
@@ -314,35 +342,19 @@ const setPageData = (date) => {
     let newPomoDisp = pomoDisp.cloneNode(true);
     pomoDisp.replaceWith(newPomoDisp);
     newPomoDisp.addEventListener('click', () => {
-        let entries = getEntries(sessionStorage.getItem('date'));
+        let entries = getEntriesToday();
         let latestEntry = entries[entries.length - 1];
         setPomodoroTimer(latestEntry?.start, latestEntry?.id);
     });
 };
 
-const setPomodoroTimer = (entryStart, entryId) => {
+const setPomodoroTimer = (entryId) => {
     resetPomodoroTimer();
-    if (!pomodoroTimeout && pomodoroOn && entryStart) {
-        let pomodoroCount = entryId % 8;
-        let pomodoroTime = 25;
-        let pomodoroType = "Work";
-        if (+pomodoroCount === 7) {
-            pomodoroType = "Break";
-        }
-        else if (pomodoroCount/2 !== Math.round(pomodoroCount/2)) {
-            pomodoroTime = 5;
-            pomodoroType = "Break";
-        }
+    if (!pomodoroTimeout && pomodoroOn) {
+        
+        [message, delay, unusedType] = getPomodoroMessageAndDelay(entryId);
 
-        let lastStartTimeArr = entryStart.split(':');
-        let now = new Date;
-        let nowMs = Date.now();
-        let newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
-        let msAfterStop = newDate - nowMs;
-
-        let pomodoroDisplay = document.getElementById('pomodoroDisplay');
-        const pomodoroMessage = pomodoroType + " until " + displayTimeFormat.format(newDate);
-        pomodoroDisplay.innerText = pomodoroMessage;
+        document.getElementById('pomodoroDisplay').innerText = message;
 
         pomodoroTimeout = setTimeout(() => {
             const context = new AudioContext();
@@ -355,7 +367,8 @@ const setPomodoroTimer = (entryStart, entryId) => {
             oscillator.connect(gain);
             gain.connect(context.destination);
 
-            showNotification(pomodoroMessage);
+            [nextMessage, unusedDelay, pomodoroType] = getPomodoroMessageAndDelay(entryId);
+            showNotification(pomodoroType + ' done. ' + nextMessage);
 
             oscillator.start();
 
@@ -363,7 +376,7 @@ const setPomodoroTimer = (entryStart, entryId) => {
             gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 2);
 
             oscillator.stop(context.currentTime + 2);
-        }, [msAfterStop]);
+        }, [delay]);
     }
 };
 
