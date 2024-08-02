@@ -341,7 +341,8 @@ const setPomodoroTimer = (entryStart, entryId) => {
         let msAfterStop = newDate - nowMs;
 
         let pomodoroDisplay = document.getElementById('pomodoroDisplay');
-        pomodoroDisplay.innerText = pomodoroType + " until " + displayTimeFormat.format(newDate);
+        const pomodoroMessage = pomodoroType + " until " + displayTimeFormat.format(newDate);
+        pomodoroDisplay.innerText = pomodoroMessage;
 
         pomodoroTimeout = setTimeout(() => {
             const context = new AudioContext();
@@ -354,6 +355,8 @@ const setPomodoroTimer = (entryStart, entryId) => {
             oscillator.connect(gain);
             gain.connect(context.destination);
 
+            showNotification(pomodoroMessage);
+
             oscillator.start();
 
             gain.gain.setValueAtTime(1, context.currentTime);
@@ -363,6 +366,20 @@ const setPomodoroTimer = (entryStart, entryId) => {
         }, [msAfterStop]);
     }
 };
+
+const showNotification = (message) => {
+    if (!("Notification" in window))
+        return;
+    if (Notification.permission === 'granted') {
+        new Notification(message);
+    }
+    else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted')
+                new Notification(message);
+        });
+    }
+}
 
 const updateDateByAmount = (amount) => {
     let datePieces = date.split('-');
