@@ -6,9 +6,9 @@
         <link rel="stylesheet" href="css.css">
     </head>
     <body>
-        <button id="backDayButton" title="Previous Day"><-</button>
+        <button id="backDayButton" title="Previous Day"><</button>
         <input id="dateInput" type="date">
-        <button id="nextDayButton" title="Next Day">-></button>
+        <button id="nextDayButton" title="Next Day">></button>
         <button id="addButton" title="Add Row">+</button>
         <button id="saveButton" title="Save All">Save</button>
         <button id="downloadButton" title="Download as CSV">Download</button>
@@ -20,7 +20,7 @@
         <div id="rows"></div>
         <label for="dayNotes">Notes:</label>
         <textarea id="dayNotes"></textarea>
-        <div id="pomodoroDisplay" class="lowerRight" hidden>Click somewhere to see pomodoro time.</div>
+        <div id="pomodoroDisplay" class="pomodoroDisplay" hidden>Click to activate pomodoro timer.</div>
         <div id="rowTemplate" hidden>
             <input class="start time" type="time" title="Start Time">
             <input class="stop time" type="time" title="Stop Time">

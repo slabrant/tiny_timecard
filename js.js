@@ -50,8 +50,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     addRow(newEntry);
     
     saveEntries(entries, date);
-    setPomodoroTimer(time);
-    pomodoroStarted = false;
+    setPomodoroTimer(time, newEntryId);
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
@@ -156,6 +155,7 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
     localStorage.setItem('pomodoroOn', pomodoroOn);
     document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+    resetPomodoroTimer();
 });
 
 document.getElementById('dayNotes').addEventListener('blur', (e) => {
@@ -207,7 +207,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 };
 
 const checkObjectsEqual = (obj1, obj2) => {
-    return JSON.stringify(obj1) === JSON.stringify(obj2);
+    return JSON.stringify(obj1, Object.keys(obj1).sort()) === JSON.stringify(obj2, Object.keys(obj2).sort());
 };
 
 const checkDaysEqual = () => {
@@ -265,6 +265,14 @@ const getPageData = () => {
     };
 };
 
+const resetPomodoroTimer = () => {
+    if (pomodoroTimeout) {
+        clearTimeout(pomodoroTimeout);
+        pomodoroTimeout = undefined;
+        pomoDisp.innerText = "Click to activate pomodoro timer.";
+    }
+};
+
 const saveEntries = (entries, date) => {
     if (entries.length === 0)
         return;
@@ -305,18 +313,20 @@ const setPageData = (date) => {
         addRow(entry);
     });
 
-    if (pomodoroOn) {
-        document.addEventListener('click', () => {
-            setPomodoroTimer(day.entries[day.entries.length - 1].start);
-        })
-    }
+    let pomoDisp = document.getElementById('pomodoroDisplay');
+    let newPomoDisp = pomoDisp.cloneNode(true);
+    pomoDisp.replaceWith(newPomoDisp);
+    newPomoDisp.addEventListener('click', () => {
+        let entries = getEntries(sessionStorage.getItem('date'));
+        let latestEntry = entries[entries.length - 1];
+        setPomodoroTimer(latestEntry?.start, latestEntry?.id);
+    });
 };
 
-const setPomodoroTimer = (start) => {
-    if (!pomodoroStarted) {
-        pomodoroStarted = true;
-
-        let pomodoroCount = localStorage.getItem('pomodoroCount') || 0;
+const setPomodoroTimer = (entryStart, entryId) => {
+    resetPomodoroTimer();
+    if (!pomodoroTimeout && pomodoroOn && entryStart) {
+        let pomodoroCount = entryId % 8;
         let pomodoroTime = 25;
         let pomodoroType = "Work";
         if (+pomodoroCount === 7) {
@@ -327,7 +337,7 @@ const setPomodoroTimer = (start) => {
             pomodoroType = "Break";
         }
 
-        let lastStartTimeArr = start.split(':');
+        let lastStartTimeArr = entryStart.split(':');
         let now = new Date;
         let nowMs = Date.now();
         let newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
@@ -336,7 +346,7 @@ const setPomodoroTimer = (start) => {
         let pomodoroDisplay = document.getElementById('pomodoroDisplay');
         pomodoroDisplay.innerText = pomodoroType + " until " + displayTimeFormat.format(newDate);
 
-        setTimeout(() => {
+        pomodoroTimeout = setTimeout(() => {
             const context = new AudioContext();
             const oscillator = context.createOscillator();
 
@@ -353,7 +363,6 @@ const setPomodoroTimer = (start) => {
             gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 2);
 
             oscillator.stop(context.currentTime + 2);
-            localStorage.setItem('pomodoroCount', ++pomodoroCount % 8);
         }, [msAfterStop]);
     }
 };
@@ -369,7 +378,7 @@ const updateDateByAmount = (amount) => {
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
-let pomodoroStarted = false;
+let pomodoroTimeout;
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
 
