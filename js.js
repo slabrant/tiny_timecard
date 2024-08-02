@@ -370,9 +370,7 @@ const setPomodoroTimer = (start, entryId) => {
             const now = new Date;
             let time = timeFormat.format(now);
             [nextMessage, unusedDelay, unusedType] = getPomodoroMessageAndDelay(time, +entryId + 1);
-            console.log(pomodoroType + ' done. ' + nextMessage)
-            console.log(entryId + 1)
-            // showNotification(pomodoroType + ' done. ' + nextMessage);
+            showNotification(pomodoroType + ' done. ' + nextMessage);
 
             oscillator.start();
 
