@@ -265,7 +265,7 @@ const getPageData = () => {
     };
 };
 
-const getPomodoroMessageAndDelay = (entryId) => {
+const getPomodoroMessageAndDelay = (start, entryId) => {
     const pomodoroCount = entryId % 8;
     let pomodoroTime = 25;
     let pomodoroType = "Work";
@@ -278,11 +278,8 @@ const getPomodoroMessageAndDelay = (entryId) => {
     }
 
     let entries = getEntriesToday();
-    let latestEntry = entries[entries.length - 1];
-    if (!latestEntry?.start)
-        return;
 
-    const lastStartTimeArr = latestEntry.start.split(':');
+    const lastStartTimeArr = start.split(':');
     const now = new Date;
     const nowMs = Date.now();
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
@@ -297,7 +294,7 @@ const resetPomodoroTimer = () => {
     if (pomodoroTimeout) {
         clearTimeout(pomodoroTimeout);
         pomodoroTimeout = undefined;
-        pomoDisp.innerText = "Click to activate pomodoro timer.";
+        document.getElementById('pomodoroDisplay').innerText = "Click to activate pomodoro timer.";
     }
 };
 
@@ -348,13 +345,15 @@ const setPageData = (date) => {
     });
 };
 
-const setPomodoroTimer = (entryId) => {
+const setPomodoroTimer = (start, entryId) => {
     resetPomodoroTimer();
-    if (!pomodoroTimeout && pomodoroOn) {
+    if (!pomodoroTimeout && pomodoroOn && start) {
         
-        [message, delay, unusedType] = getPomodoroMessageAndDelay(entryId);
+        [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, entryId);
 
         document.getElementById('pomodoroDisplay').innerText = message;
+        if (delay < 0)
+            return;
 
         pomodoroTimeout = setTimeout(() => {
             const context = new AudioContext();
@@ -367,8 +366,13 @@ const setPomodoroTimer = (entryId) => {
             oscillator.connect(gain);
             gain.connect(context.destination);
 
-            [nextMessage, unusedDelay, pomodoroType] = getPomodoroMessageAndDelay(entryId);
-            showNotification(pomodoroType + ' done. ' + nextMessage);
+            
+            const now = new Date;
+            let time = timeFormat.format(now);
+            [nextMessage, unusedDelay, unusedType] = getPomodoroMessageAndDelay(time, +entryId + 1);
+            console.log(pomodoroType + ' done. ' + nextMessage)
+            console.log(entryId + 1)
+            // showNotification(pomodoroType + ' done. ' + nextMessage);
 
             oscillator.start();
 
