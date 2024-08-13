@@ -266,19 +266,19 @@ const getPageData = () => {
 };
 
 const getPomodoroMessageAndDelay = (start, entryId) => {
-    let pomodoroWorkTime = localStorage.getItem('pomodoroWorkTime');
+    let pomodoroWorkTime = +localStorage.getItem('pomodoroWorkTime');
     if (!pomodoroWorkTime) {
         localStorage.setItem('pomodoroWorkTime', 25);
         pomodoroWorkTime = 25;
     }
 
-    let pomodoroShortTime = localStorage.getItem('pomodoroShortTime');
+    let pomodoroShortTime = +localStorage.getItem('pomodoroShortTime');
     if (!pomodoroShortTime) {
         localStorage.setItem('pomodoroShortTime', 5);
         pomodoroShortTime = 25;
     }
 
-    let pomodoroLongTime = localStorage.getItem('pomodoroLongTime');
+    let pomodoroLongTime = +localStorage.getItem('pomodoroLongTime');
     if (!pomodoroLongTime) {
         localStorage.setItem('pomodoroLongTime', 25);
         pomodoroLongTime = 25;
