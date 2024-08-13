@@ -266,14 +266,19 @@ const getPageData = () => {
 };
 
 const getPomodoroMessageAndDelay = (start, entryId) => {
+    let pomodoroWorkTime = localStorage.getItem('pomodoroWorkTime') || 25;
+    let pomodoroShortTime = localStorage.getItem('pomodoroShortTime') || 5;
+    let pomodoroLongTime = localStorage.getItem('pomodoroLongTime') || 25;
+
     const pomodoroCount = entryId % 8;
-    let pomodoroTime = 25;
+    let pomodoroTime = pomodoroWorkTime;
     let pomodoroType = "Work";
     if (+pomodoroCount === 7) {
+        pomodoroTime = pomodoroLongTime;
         pomodoroType = "Break";
     }
     else if (pomodoroCount/2 !== Math.round(pomodoroCount/2)) {
-        pomodoroTime = 5;
+        pomodoroTime = pomodoroShortTime;
         pomodoroType = "Break";
     }
 
