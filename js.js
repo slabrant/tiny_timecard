@@ -266,9 +266,23 @@ const getPageData = () => {
 };
 
 const getPomodoroMessageAndDelay = (start, entryId) => {
-    let pomodoroWorkTime = localStorage.getItem('pomodoroWorkTime') || 25;
-    let pomodoroShortTime = localStorage.getItem('pomodoroShortTime') || 5;
-    let pomodoroLongTime = localStorage.getItem('pomodoroLongTime') || 25;
+    let pomodoroWorkTime = localStorage.getItem('pomodoroWorkTime');
+    if (!pomodoroWorkTime) {
+        localStorage.setItem('pomodoroWorkTime', 25);
+        pomodoroWorkTime = 25;
+    }
+
+    let pomodoroShortTime = localStorage.getItem('pomodoroShortTime');
+    if (!pomodoroShortTime) {
+        localStorage.setItem('pomodoroShortTime', 5);
+        pomodoroShortTime = 25;
+    }
+
+    let pomodoroLongTime = localStorage.getItem('pomodoroLongTime');
+    if (!pomodoroLongTime) {
+        localStorage.setItem('pomodoroLongTime', 25);
+        pomodoroLongTime = 25;
+    }
 
     const pomodoroCount = entryId % 8;
     let pomodoroTime = pomodoroWorkTime;
