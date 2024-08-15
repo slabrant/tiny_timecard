@@ -19,7 +19,7 @@ button, .buttonLabel {
     height: calc(0.92 * 1.5em);
 }
 
-button:hover, label:hover {
+button:hover, .buttonLabel:hover {
     filter: brightness(85%);
 }
 
@@ -50,4 +50,8 @@ input {
 
 .notes {
     width: calc(80% - 8em);
+}
+
+#dayNotes {
+    width: 100%;
 }
