@@ -266,37 +266,38 @@ const getPageData = () => {
 };
 
 const getPomodoroMessageAndDelay = (start, entryId) => {
-    let pomodoroWorkTime = +localStorage.getItem('pomodoroWorkTime');
-    if (!pomodoroWorkTime) {
-        localStorage.setItem('pomodoroWorkTime', 25);
-        pomodoroWorkTime = 25;
-    }
+    const defaultPomodoroTimes = {
+        work: 25,
+        short: 5,
+        long: 25,
+    };
 
-    let pomodoroShortTime = +localStorage.getItem('pomodoroShortTime');
-    if (!pomodoroShortTime) {
-        localStorage.setItem('pomodoroShortTime', 5);
-        pomodoroShortTime = 25;
-    }
-
-    let pomodoroLongTime = +localStorage.getItem('pomodoroLongTime');
-    if (!pomodoroLongTime) {
-        localStorage.setItem('pomodoroLongTime', 25);
-        pomodoroLongTime = 25;
-    }
-
-    const pomodoroCount = entryId % 8;
-    let pomodoroTime = pomodoroWorkTime;
+    let pomodoroTimes = JSON.parse(localStorage.getItem('pomodoroTimes')) || defaultPomodoroTimes;
+    let pomodoroTime;
     let pomodoroType = "Work";
-    if (+pomodoroCount === 7) {
-        pomodoroTime = pomodoroLongTime;
-        pomodoroType = "Break";
-    }
-    else if (pomodoroCount/2 !== Math.round(pomodoroCount/2)) {
-        pomodoroTime = pomodoroShortTime;
-        pomodoroType = "Break";
-    }
+    if (Object.prototype.toString.call(pomodoroTimes) === '[object Array]') {
+        // Putting a zero at the start of the pomodoroTimes array will switch the order of breaks and work periods.
+        const pomoCount = (pomodoroTimes[0] === 0) ? 
+            ++entryId % --pomodoroTimes.length :
+            entryId % pomodoroTimes.length;
 
-    let entries = getEntriesToday();
+        if (pomoCount/2 !== Math.round(pomoCount/2)) {
+            pomodoroType = "Break";
+        }
+        pomodoroTime = pomodoroTimes[pomoCount];
+    }
+    else {
+        const pomoCount = entryId % 8;
+        pomodoroTime = pomodoroTimes.work;
+        if (pomoCount === 7) {
+            pomodoroTime = pomodoroTimes.long;
+            pomodoroType = "Break";
+        }
+        else if (pomoCount/2 !== Math.round(pomoCount/2)) {
+            pomodoroTime = pomodoroTimes.short;
+            pomodoroType = "Break";
+        }
+    }
 
     const lastStartTimeArr = start.split(':');
     const now = new Date;
@@ -368,7 +369,7 @@ const setPomodoroTimer = (start, entryId) => {
     resetPomodoroTimer();
     if (!pomodoroTimeout && pomodoroOn && start) {
         
-        [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, entryId);
+        [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, +entryId);
 
         document.getElementById('pomodoroDisplay').innerText = message;
         if (delay < 0)
