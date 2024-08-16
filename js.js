@@ -349,7 +349,9 @@ const setPageData = (date) => {
     sessionStorage.setItem('date', date);
     let day = getDay(date);
     document.getElementById('rows').innerHTML = '';
-    document.getElementById('dayNotes').value = day.notes;
+    let dayNotesField = document.getElementById('dayNotes');
+    dayNotesField.value = day.notes;
+    dayNotesField.rows = (day.notes.match(/\n/g) || []).length + 1;
 
     day.entries.map((entry) => {
         addRow(entry);
