@@ -183,6 +183,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 
     let newRow = rowTemplate.cloneNode(true);
     newRow.id = 'row_' + id;
+    newRow.classList.add('row');
     document.getElementById('rows').appendChild(newRow);
 
     newRow.querySelector('.start').value = start;

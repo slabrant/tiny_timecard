@@ -48,6 +48,18 @@ input {
     margin-right: 4px;
 }
 
+.row {
+    display: flex;
+}
+
+.flex_thin {
+    flex: 0 1 0;
+}
+
+.flex_fat {
+    flex: 1 1 0;
+}
+
 .notes {
     width: calc(80% - 8em);
 }
