@@ -193,6 +193,8 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     Array.from(newRow.getElementsByTagName('input')).map(input => {
         input.addEventListener('blur', (e) => {
             checkDaysEqual();
+            if (input.classList.contains('start') && !document.getElementById('row_' + (+id + 1)))
+                setPomodoroTimer(input.value, id);
         })
     });
 
@@ -202,6 +204,8 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
             newRow.remove();
             const entries = getPageData(date).entries.filter((entry) => entry.id !== id);
             saveEntries(entries, date);
+            let latestEntry = entries[entries.length - 1];
+            setPomodoroTimer(latestEntry?.start, latestEntry?.id);
         }
     });
 };
