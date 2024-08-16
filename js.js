@@ -1,13 +1,13 @@
 document.getElementById('backDayButton').addEventListener('click', (e) => {
-    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
         updateDateByAmount(-1);
 });
 
 document.getElementById('dateInput').addEventListener('change', (e) => {
-    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
         date = e.target.value;
         setPageData(date);
-        checkDaysEqual();
+        checkPageChanged();
     }
     else {
         e.target.value = date;
@@ -15,7 +15,7 @@ document.getElementById('dateInput').addEventListener('change', (e) => {
 });
 
 document.getElementById('nextDayButton').addEventListener('click', (e) => {
-    if (checkDaysEqual() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
         updateDateByAmount(1);
 });
 
@@ -55,14 +55,14 @@ document.getElementById('addButton').addEventListener('click', (e) => {
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
     saveDay(getPageData(), date);
-    checkDaysEqual();
+    checkPageChanged();
 });
 
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         saveDay(getPageData(), date);
-        checkDaysEqual();
+        checkPageChanged();
     }
 });
 
@@ -130,19 +130,13 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                 id++;
             }
         });
-                    
-        let reducedDays = Object.keys(newDays).sort().reduce((days, key) => {
-            if (0 < newDays[key].entries.length || 0 < newDays[key].notes.length)
-                days[key] = newDays[key];
-            return days;
-        }, {});
 
-        let areRowsEqual = checkObjectsEqual(reducedDays, getDays());
+        let areRowsEqual = checkDaysEqual(newDays, getDays());
 
         if (areRowsEqual)
             alert('There is no new data to upload.');
         else if (confirm("Warning: This will overwrite your data. Recovery is not possible. Would you like to continue?"))
-            saveDays(reducedDays);
+            saveDays(newDays);
     });
 
     if (file) {
@@ -159,7 +153,7 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
 });
 
 document.getElementById('dayNotes').addEventListener('blur', (e) => {
-    checkDaysEqual();
+    checkPageChanged();
 });
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -193,7 +187,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
 
     Array.from(newRow.getElementsByTagName('input')).map(input => {
         input.addEventListener('blur', (e) => {
-            checkDaysEqual();
+            checkPageChanged();
             if (input.classList.contains('start') && !document.getElementById('row_' + (+id + 1)))
                 setPomodoroTimer(input.value, id);
         })
@@ -213,13 +207,28 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     });
 };
 
-const checkObjectsEqual = (obj1, obj2) => {
-    return JSON.stringify(obj1, Object.keys(obj1).sort()) === JSON.stringify(obj2, Object.keys(obj2).sort());
+const checkDayEqual = (day1, day2) => {
+    let entries1 = day1.entries.sort((one, two) => (one.id < two.id) ? 1 : -1);
+    let entries2 = day2.entries.sort((one, two) => (one.id < two.id) ? 1 : -1);
+
+    return (JSON.stringify(entries1) === JSON.stringify(entries2)) && (day1.notes === day2.notes)
 };
 
-const checkDaysEqual = () => {
-    let areRowsEqual = checkObjectsEqual(getPageData(), getDay(date));
-    
+const checkDaysEqual = (days1, days2) => {
+    let dates1 = Object.keys(days1);
+    let dates2 = Object.keys(days2);
+
+    if (JSON.stringify(dates1) !== JSON.stringify(dates2)) return false;
+
+    return dates1.reduce((accumulator, date) => {
+        // TODO: add day notes to file download/upload
+        return accumulator && checkDayEqual(days1[date], days2[date]);
+    }, true);
+}
+
+const checkPageChanged = () => {
+    let areRowsEqual = checkDayEqual(getPageData(), getDay(date));
+
     if (areRowsEqual)
         document.getElementById('saveButton').classList.remove('primary');
     else
@@ -333,7 +342,7 @@ const saveEntries = (entries, date) => {
     days[date].entries = entries;
 
     localStorage.setItem('days', JSON.stringify(days));
-    checkDaysEqual();
+    checkPageChanged();
 };
 
 const saveDay = (day, date) => {
@@ -344,7 +353,7 @@ const saveDay = (day, date) => {
     days[date] = day;
 
     localStorage.setItem('days', JSON.stringify(days));
-    checkDaysEqual();
+    checkPageChanged();
 };
 
 const saveDays = (days) => {
@@ -431,7 +440,7 @@ const updateDateByAmount = (amount) => {
     date = dateFormat.format(changedDate);
     document.getElementById('dateInput').value = date;
     setPageData(date);
-    checkDaysEqual();
+    checkPageChanged();
 };
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
