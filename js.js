@@ -344,9 +344,6 @@ const saveEntries = (entries, date) => {
 };
 
 const saveDay = (day, date) => {
-    if (day.entries.length === 0 && day.notes.length === 0)
-        return;
-
     let days = getDays();
     days[date] = day;
 
