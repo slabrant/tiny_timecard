@@ -199,8 +199,10 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     });
 
     newRow.querySelector('.remove').addEventListener('click', (e) => {
-        // let start = newRow.querySelector('.start').value; ${start} TODO: This needs a human-readable time format to be used.
-        if (confirm(`This will delete this entry. Would you like to continue?`)) {
+        const now = new Date;
+        const startArr = newRow.querySelector('.start').value.split(':');
+        const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startArr[0], +startArr[1]);
+        if (confirm(`This will delete the entry starting at ${displayTimeFormat.format(startDate)}. Would you like to continue?`)) {
             newRow.remove();
             const entries = getPageData(date).entries.filter((entry) => entry.id !== id);
             saveEntries(entries, date);
@@ -303,9 +305,9 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
         }
     }
 
-    const lastStartTimeArr = start.split(':');
-    const now = new Date;
     const nowMs = Date.now();
+    const now = new Date;
+    const lastStartTimeArr = start.split(':');
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
     const delay = newDate - nowMs;
 
