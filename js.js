@@ -152,6 +152,7 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
 
 document.getElementById('dayNotes').addEventListener('input', (e) => {
     checkPageChanged();
+    e.target.rows = (e.target.value.match(/\n/g) || []).length + 1;
 });
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {

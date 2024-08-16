@@ -60,10 +60,7 @@ input {
     flex: 1 1 0;
 }
 
-.notes {
-    width: calc(80% - 8em);
-}
-
 #dayNotes {
     width: 100%;
+    resize: none;
 }
