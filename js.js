@@ -133,7 +133,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
 
         if (areRowsEqual)
             alert('There is no new data to upload.');
-        else if (confirm("Warning: This will overwrite your data. Recovery is not possible. Would you like to continue?"))
+        else if (confirm("This will overwrite your data. Recovery is not possible. Would you like to continue?"))
             saveDays(newDays);
     });
 
@@ -210,8 +210,12 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.remove').addEventListener('click', (e) => {
         const now = new Date;
         const startArr = newRow.querySelector('.start').value.split(':');
-        const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startArr[0], +startArr[1]);
-        if (confirm(`This will delete the entry starting at ${displayTimeFormat.format(startDate)}. Would you like to continue?`)) {
+        let message = 'This will delete the entry. Would you like to continue?';
+        if (1 < startArr.length) {
+            const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startArr[0], +startArr[1]);
+            message = `This will delete the entry starting at ${displayTimeFormat.format(startDate)}. Would you like to continue?`;
+        }
+        if (confirm(message)) {
             newRow.remove();
             const entries = getPageData(date).entries.filter((entry) => entry.id !== id);
             saveEntries(entries, date);
