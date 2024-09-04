@@ -185,7 +185,7 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.hidden = false;
 
     Array.from(newRow.getElementsByTagName('input')).map(input => {
-        input.addEventListener('input', e => {
+        input.addEventListener('input', () => {
             checkPageChanged();
             if (input.classList.contains('start') && !document.getElementById('row_' + (+id + 1)))
                 setPomodoroTimer(input.value, id);
@@ -195,11 +195,13 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
                 if ('' === e.target.value) {
                     const now = new Date;
                     e.target.value = timeFormat.format(now);
+                    checkPageChanged();
                 }
             });
             input.addEventListener('keydown', e => {
                 if ('Backspace' === e.key) {
                     e.target.value = '';
+                    checkPageChanged();
                 }
             });
         }
