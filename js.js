@@ -185,11 +185,24 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.hidden = false;
 
     Array.from(newRow.getElementsByTagName('input')).map(input => {
-        input.addEventListener('input', () => {
+        input.addEventListener('input', e => {
             checkPageChanged();
             if (input.classList.contains('start') && !document.getElementById('row_' + (+id + 1)))
                 setPomodoroTimer(input.value, id);
         })
+        if (!input.classList.contains('notes')) {
+            input.addEventListener('focus', e => {
+                if ('' === e.target.value) {
+                    const now = new Date;
+                    e.target.value = timeFormat.format(now);
+                }
+            });
+            input.addEventListener('keydown', e => {
+                if ('Backspace' === e.key) {
+                    e.target.value = '';
+                }
+            });
+        }
     });
 
     newRow.querySelector('.remove').addEventListener('click', (e) => {
