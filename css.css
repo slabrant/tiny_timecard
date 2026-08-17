@@ -48,6 +48,13 @@ input {
     margin-right: 4px;
 }
 
+#pomodoroTimesInput {
+    font: 12pt sans-serif;
+    height: 1.5em;
+    border-radius: 5px;
+    width: 14em;
+}
+
 .row {
     display: flex;
 }

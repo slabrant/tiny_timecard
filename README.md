@@ -23,6 +23,9 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
 - With pomodoro timer enabled, will chime at the end of each work session and break
+  - The box beside the checkbox sets the cycle: a comma separated list of minutes that alternates work and break, such as `45,5,40,5,35,5,30,30`
+  - The cycle repeats from the start once its last period is done
+  - Starting the list with a `0`, such as `0,5,45`, begins the cycle on a break instead of a work period
 
 ## Contact
 Let me know if you have any feedback or suggestions via email: glasstacojar@gmail.com

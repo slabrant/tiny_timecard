@@ -126,7 +126,19 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
     localStorage.setItem('pomodoroOn', pomodoroOn);
     document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+    document.getElementById('pomodoroTimesInput').hidden = !pomodoroOn;
     resetPomodoroTimer();
+});
+
+document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => {
+    const times = parsePomodoroTimes(e.target.value);
+
+    if (times)
+        localStorage.setItem('pomodoroTimes', JSON.stringify(times));
+
+    // Unusable text is dropped, so the field always shows the times actually in effect.
+    e.target.value = getPomodoroTimes().join(',');
+    restartPomodoroTimer();
 });
 
 document.getElementById('dayNotes').addEventListener('input', (e) => {
@@ -278,38 +290,16 @@ const getPageData = () => {
 };
 
 const getPomodoroMessageAndDelay = (start, entryId) => {
-    const defaultPomodoroTimes = {
-        work: 25,
-        short: 5,
-        long: 25,
-    };
+    const pomodoroTimes = getPomodoroTimes();
 
-    let pomodoroTimes = JSON.parse(localStorage.getItem('pomodoroTimes')) || defaultPomodoroTimes;
-    let pomodoroTime;
-    let pomodoroType = "Work";
-    if (Object.prototype.toString.call(pomodoroTimes) === '[object Array]') {
-        // Putting a zero at the start of the pomodoroTimes array will switch the order of breaks and work periods.
-        const pomoCount = (pomodoroTimes[0] === 0) ? 
-            ++entryId % --pomodoroTimes.length :
-            entryId % pomodoroTimes.length;
+    // A leading zero shifts the cycle so it starts on a break instead of a work period.
+    const startsOnBreak = (pomodoroTimes[0] === 0);
+    const cycle = startsOnBreak ? pomodoroTimes.slice(1) : pomodoroTimes;
 
-        if (pomoCount/2 !== Math.round(pomoCount/2)) {
-            pomodoroType = "Break";
-        }
-        pomodoroTime = pomodoroTimes[pomoCount];
-    }
-    else {
-        const pomoCount = entryId % 8;
-        pomodoroTime = pomodoroTimes.work;
-        if (pomoCount === 7) {
-            pomodoroTime = pomodoroTimes.long;
-            pomodoroType = "Break";
-        }
-        else if (pomoCount/2 !== Math.round(pomoCount/2)) {
-            pomodoroTime = pomodoroTimes.short;
-            pomodoroType = "Break";
-        }
-    }
+    const pomoCount = entryId % cycle.length;
+    const pomodoroTime = cycle[pomoCount];
+    const isBreak = ((pomoCount % 2) === 1) !== startsOnBreak;
+    const pomodoroType = isBreak ? "Break" : "Work";
 
     const nowMs = Date.now();
     const now = new Date;
@@ -321,6 +311,18 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
 
     return [message, delay, pomodoroType];
 }
+
+const getPomodoroTimes = () => {
+    const storedTimes = JSON.parse(localStorage.getItem('pomodoroTimes'));
+
+    if (Array.isArray(storedTimes) && parsePomodoroTimes(storedTimes.join(',')))
+        return storedTimes;
+
+    // The original {work, short, long} setting is the same cycle as work, short, work, short, work, short, work, long.
+    const {work = 25, short = 5, long = 25} = (storedTimes instanceof Object) ? storedTimes : {};
+
+    return [work, short, work, short, work, short, work, long];
+};
 
 const getRowElements = () => {
     return Array.from(document.getElementById('rows').children);
@@ -394,12 +396,34 @@ const parseCsv = (text) => {
     return rows;
 };
 
+// Reads a comma separated list of minutes, and returns null if it is not usable as a pomodoro cycle.
+const parsePomodoroTimes = (text) => {
+    const times = text.split(',')
+        .map(piece => piece.trim())
+        .filter(piece => piece !== '')
+        .map(Number);
+
+    if (times.length === 0 || times.some(time => !Number.isInteger(time) || time < 0))
+        return null;
+
+    // A leading zero only marks the cycle as starting on a break, so it needs a period after it.
+    if (times[0] === 0 && times.length < 2)
+        return null;
+
+    return times;
+};
+
 const resetPomodoroTimer = () => {
     if (pomodoroTimeout) {
         clearTimeout(pomodoroTimeout);
         pomodoroTimeout = undefined;
         document.getElementById('pomodoroDisplay').innerText = "Click to activate pomodoro timer.";
     }
+};
+
+const restartPomodoroTimer = () => {
+    const entries = getPageData().entries;
+    setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
 };
 
 const saveEntries = (entries, date) => {
@@ -441,10 +465,7 @@ const setPageData = (date) => {
     let pomoDisp = document.getElementById('pomodoroDisplay');
     let newPomoDisp = pomoDisp.cloneNode(true);
     pomoDisp.replaceWith(newPomoDisp);
-    newPomoDisp.addEventListener('click', () => {
-        let entries = getPageData().entries;
-        setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
-    });
+    newPomoDisp.addEventListener('click', restartPomodoroTimer);
 };
 
 const setPomodoroTimer = (start, entryId) => {
@@ -512,6 +533,10 @@ let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
 let pomodoroTimeout;
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+
+const pomodoroTimesInput = document.getElementById('pomodoroTimesInput');
+pomodoroTimesInput.value = getPomodoroTimes().join(',');
+pomodoroTimesInput.hidden = !pomodoroOn;
 
 document.getElementById('dateInput').value = date;
 setPageData(date);
