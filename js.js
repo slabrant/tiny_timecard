@@ -126,8 +126,19 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
     localStorage.setItem('pomodoroOn', pomodoroOn);
     document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
-    document.getElementById('pomodoroTimesInput').hidden = !pomodoroOn;
+    document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
+    document.getElementById('pomodoroTimesInput').hidden = true;
     resetPomodoroTimer();
+});
+
+// The field puts itself away as soon as it loses focus, so this only ever needs to open it.
+document.getElementById('pomodoroTimesButton').addEventListener('click', (e) => {
+    const timesInput = document.getElementById('pomodoroTimesInput');
+
+    timesInput.hidden = false;
+    timesInput.value = getPomodoroTimes().join(',');
+    timesInput.focus();
+    timesInput.select();
 });
 
 document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => {
@@ -139,6 +150,15 @@ document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => 
     // Unusable text is dropped, so the field always shows the times actually in effect.
     e.target.value = getPomodoroTimes().join(',');
     restartPomodoroTimer();
+});
+
+document.getElementById('pomodoroTimesInput').addEventListener('keydown', (e) => {
+    if ('Enter' === e.key)
+        e.target.blur();
+});
+
+document.getElementById('pomodoroTimesInput').addEventListener('blur', (e) => {
+    e.target.hidden = true;
 });
 
 document.getElementById('dayNotes').addEventListener('input', (e) => {
@@ -534,9 +554,8 @@ let pomodoroTimeout;
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
 
-const pomodoroTimesInput = document.getElementById('pomodoroTimesInput');
-pomodoroTimesInput.value = getPomodoroTimes().join(',');
-pomodoroTimesInput.hidden = !pomodoroOn;
+document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
+document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
 
 document.getElementById('dateInput').value = date;
 setPageData(date);

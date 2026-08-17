@@ -49,10 +49,15 @@ input {
 }
 
 #pomodoroTimesInput {
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    border: 1px solid #b0b0b0;
+    border-radius: 5px;
     font: 12pt sans-serif;
     height: 1.5em;
-    border-radius: 5px;
-    width: 14em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+    width: 13em;
 }
 
 .row {
