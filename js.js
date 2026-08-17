@@ -1,3 +1,5 @@
+'use strict';
+
 document.getElementById('backDayButton').addEventListener('click', (e) => {
     if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
         updateDateByAmount(-1);
@@ -23,34 +25,30 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     const now = new Date;
     let time = timeFormat.format(now);
     let entries = getPageData().entries;
-    const newEntryId = entries.length;
-    const previousEntryId = newEntryId - 1;
+    const previousEntry = entries[entries.length - 1];
 
-    if (entries[previousEntryId]?.start === time)
+    if (previousEntry?.start === time)
         return;
 
-    if (entries[newEntryId-1]) {
-        const entryStop = entries[previousEntryId].stop;
+    if (previousEntry) {
+        if (previousEntry.stop === '')
+            previousEntry.stop = time;
+        else
+            time = previousEntry.stop;
 
-        if (entryStop === '') 
-            entries[previousEntryId].stop = time;
-        else 
-            time = entryStop;
-
-        document.getElementById('row_' + previousEntryId).querySelector('.stop').value = time;
+        getRowElements().pop().querySelector('.stop').value = previousEntry.stop;
     }
 
     const newEntry = {
-        id: newEntryId,
         start: time,
         stop: '',
         notes: ''
     };
     entries.push(newEntry);
     addRow(newEntry);
-    
+
     saveEntries(entries, date);
-    setPomodoroTimer(time, newEntryId);
+    setPomodoroTimer(time, entries.length - 1);
 });
 
 document.getElementById('saveButton').addEventListener('click', (e) => {
@@ -65,23 +63,16 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.getElementById('downloadButton').addEventListener('click', (e) => {
-    let days = getDays();
-    let csv = 'data:text/csv;charset=utf-8,\uFEFF';
+    const blob = new Blob([buildCsv(getDays())], {type: 'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
 
-    for (let date in days) {
-        csv += date + '\n'
-        for (let entryKey in days[date].entries) {
-            const entry = days[date].entries[entryKey];
-            const notes = entry['notes'].replace("\"", "\"\"");
-            csv += encodeURIComponent(`"${entry['start']}","${entry['stop']}","${notes}"\n`);
-        }
-    }
-    
     const now = new Date;
     const anchor = document.createElement('a');
-    anchor.href = csv;
+    anchor.href = url;
     anchor.download = `tiny_time_${dateFormat.format(now)}_${timeFormat.format(now)}.csv`;
     anchor.click();
+
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
 document.getElementById('uploadButton').addEventListener('change', (e) => {
@@ -91,41 +82,29 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
     reader.addEventListener('load', () => {
         let newDays = {};
         let date = '';
-        let id = 0;
 
-        reader.result.split(/\r?\n/).map(line => {
-            let start = '';
-            let stop = '';
-            line = line.replaceAll('"', '');
+        parseCsv(reader.result).forEach(fields => {
+            if (fields.every(field => field === ''))
+                return;
 
-            if (5 < line.indexOf(','))
-                line = line.substr(0, line.indexOf(','));
-
-            if (line.indexOf(',') === -1) {
-                let datePieces = line.split('-');
-                let newDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2]);
-                if (newDate instanceof Date && !isNaN(newDate)) {
+            // A row starting with a date begins a new day, and may carry that day's notes.
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fields[0])) {
+                const datePieces = fields[0].split('-');
+                const newDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2]);
+                if (!isNaN(newDate)) {
                     date = dateFormat.format(newDate);
                     newDays[date] = {
                         "entries": [],
-                        "notes": "",
+                        "notes": fields[1] || '',
                     };
-                    id = 0;
                 }
             }
             else if (date !== '') {
-                start = line.substr(0, line.indexOf(','));
-                line = line.substr(line.indexOf(',') + 1);
-                stop = line.substr(0, line.indexOf(','));
-                notes = line.substr(line.indexOf(',') + 1);
-
                 newDays[date].entries.push({
-                    id: id,
-                    start: start,
-                    stop: stop,
-                    notes: notes,
+                    start: fields[0] || '',
+                    stop: fields[1] || '',
+                    notes: fields[2] || '',
                 });
-                id++;
             }
         });
 
@@ -171,11 +150,11 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
     hour12: true,
 });
 
-const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
+const addRow = ({start = '', stop = '', notes = ''}) => {
     let rowTemplate = document.getElementById('rowTemplate');
 
     let newRow = rowTemplate.cloneNode(true);
-    newRow.id = 'row_' + id;
+    newRow.removeAttribute('id');
     newRow.classList.add('row');
     document.getElementById('rows').appendChild(newRow);
 
@@ -184,11 +163,11 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.notes').value = notes;
     newRow.hidden = false;
 
-    Array.from(newRow.getElementsByTagName('input')).map(input => {
+    Array.from(newRow.getElementsByTagName('input')).forEach(input => {
         input.addEventListener('input', () => {
             checkPageChanged();
-            if (input.classList.contains('start') && !document.getElementById('row_' + (+id + 1)))
-                setPomodoroTimer(input.value, id);
+            if (input.classList.contains('start') && newRow === getRowElements().pop())
+                setPomodoroTimer(input.value, getRowIndex(newRow));
         })
         if (!input.classList.contains('notes')) {
             input.addEventListener('focus', e => {
@@ -217,19 +196,28 @@ const addRow = ({id = -1, start = '', stop = '', notes = ''}) => {
         }
         if (confirm(message)) {
             newRow.remove();
-            const entries = getPageData(date).entries.filter((entry) => entry.id !== id);
+            const entries = getPageData().entries;
             saveEntries(entries, date);
-            let latestEntry = entries[entries.length - 1];
-            setPomodoroTimer(latestEntry?.start, latestEntry?.id);
+            setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
         }
     });
 };
 
-const checkDayEqual = (day1, day2) => {
-    let entries1 = day1.entries.sort((one, two) => (one.id < two.id) ? 1 : -1);
-    let entries2 = day2.entries.sort((one, two) => (one.id < two.id) ? 1 : -1);
+const buildCsv = (days) => {
+    let csv = '\uFEFF';
 
-    return (JSON.stringify(entries1) === JSON.stringify(entries2)) && (day1.notes === day2.notes)
+    for (let date in days) {
+        csv += csvRow([date, days[date].notes]);
+        days[date].entries.forEach(entry => {
+            csv += csvRow([entry.start, entry.stop, entry.notes]);
+        });
+    }
+
+    return csv;
+};
+
+const checkDayEqual = (day1, day2) => {
+    return (JSON.stringify(day1.entries) === JSON.stringify(day2.entries)) && (day1.notes === day2.notes)
 };
 
 const checkDaysEqual = (days1, days2) => {
@@ -239,7 +227,6 @@ const checkDaysEqual = (days1, days2) => {
     if (JSON.stringify(dates1) !== JSON.stringify(dates2)) return false;
 
     return dates1.reduce((accumulator, date) => {
-        // TODO: add day notes to file download/upload
         return accumulator && checkDayEqual(days1[date], days2[date]);
     }, true);
 }
@@ -255,40 +242,31 @@ const checkPageChanged = () => {
     return areRowsEqual;
 };
 
+const csvRow = (fields) => {
+    return fields.map(field => `"${String(field).replaceAll('"', '""')}"`).join(',') + '\n';
+};
+
 const getDay = (date) => {
-    let days = JSON.parse(localStorage.getItem('days')) || {};
-
-    if (!days[date]) {
-        days[date] = {
-            "entries": [],
-            "notes": "",
-        };
-    }
-
-    return days[date];
+    return normalizeDay(getDays()[date]);
 };
 
 const getDays = () => {
-    return JSON.parse(localStorage.getItem('days')) || {};
-};
+    let days = JSON.parse(localStorage.getItem('days')) || {};
 
-const getEntriesToday = () => {
-    return getDay(sessionStorage.getItem('date')).entries || [];
+    for (let date in days) {
+        days[date] = normalizeDay(days[date]);
+    }
+
+    return days;
 };
 
 const getPageData = () => {
-    let rowElements = document.getElementById('rows').children;
-    
-    let newEntries = [];
-    let idCount = 0;
-    Array.from(rowElements).map(rowElement => {
-        newEntries.push({
-            id: idCount,
+    let newEntries = getRowElements().map(rowElement => {
+        return {
             start: rowElement.querySelector('.start').value,
             stop: rowElement.querySelector('.stop').value,
             notes: rowElement.querySelector('.notes').value,
-        });
-        idCount++;
+        };
     });
 
     let dayNotes = document.getElementById('dayNotes').value;
@@ -344,6 +322,78 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     return [message, delay, pomodoroType];
 }
 
+const getRowElements = () => {
+    return Array.from(document.getElementById('rows').children);
+};
+
+const getRowIndex = (rowElement) => {
+    return getRowElements().indexOf(rowElement);
+};
+
+const normalizeDay = (day) => {
+    return {
+        "entries": (day?.entries || []).map(normalizeEntry),
+        "notes": day?.notes || '',
+    };
+};
+
+const normalizeEntry = ({start = '', stop = '', notes = ''}) => {
+    return {
+        start: start,
+        stop: stop,
+        notes: notes,
+    };
+};
+
+// Splits CSV text into rows of fields, keeping commas, quotes, and newlines that sit inside quoted fields.
+const parseCsv = (text) => {
+    let rows = [];
+    let fields = [];
+    let field = '';
+    let inQuotes = false;
+
+    if (text.startsWith('\uFEFF'))
+        text = text.substr(1);
+
+    for (let i = 0; i < text.length; i++) {
+        const character = text[i];
+
+        if (inQuotes) {
+            if (character === '"' && text[i + 1] === '"') {
+                field += '"';
+                i++;
+            }
+            else if (character === '"')
+                inQuotes = false;
+            else
+                field += character;
+        }
+        else if (character === '"')
+            inQuotes = true;
+        else if (character === ',') {
+            fields.push(field);
+            field = '';
+        }
+        else if (character === '\n' || character === '\r') {
+            if (character === '\r' && text[i + 1] === '\n')
+                i++;
+            fields.push(field);
+            rows.push(fields);
+            fields = [];
+            field = '';
+        }
+        else
+            field += character;
+    }
+
+    if (field !== '' || 0 < fields.length) {
+        fields.push(field);
+        rows.push(fields);
+    }
+
+    return rows;
+};
+
 const resetPomodoroTimer = () => {
     if (pomodoroTimeout) {
         clearTimeout(pomodoroTimeout);
@@ -355,7 +405,7 @@ const resetPomodoroTimer = () => {
 const saveEntries = (entries, date) => {
     let days = getDays();
     if (!days[date])
-        days[date] = { "notes": "" };
+        days[date] = normalizeDay();
 
     days[date].entries = entries;
 
@@ -384,7 +434,7 @@ const setPageData = (date) => {
     dayNotesField.value = day.notes;
     dayNotesField.rows = (day.notes.match(/\n/g) || []).length + 1;
 
-    day.entries.map((entry) => {
+    day.entries.forEach((entry) => {
         addRow(entry);
     });
 
@@ -392,9 +442,8 @@ const setPageData = (date) => {
     let newPomoDisp = pomoDisp.cloneNode(true);
     pomoDisp.replaceWith(newPomoDisp);
     newPomoDisp.addEventListener('click', () => {
-        let entries = getEntriesToday();
-        let latestEntry = entries[entries.length - 1];
-        setPomodoroTimer(latestEntry?.start, latestEntry?.id);
+        let entries = getPageData().entries;
+        setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
     });
 };
 
@@ -402,7 +451,7 @@ const setPomodoroTimer = (start, entryId) => {
     resetPomodoroTimer();
     if (!pomodoroTimeout && pomodoroOn && start) {
         
-        [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, +entryId);
+        const [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, +entryId);
 
         document.getElementById('pomodoroDisplay').innerText = message;
         if (delay < 0)
@@ -422,7 +471,7 @@ const setPomodoroTimer = (start, entryId) => {
             
             const now = new Date;
             let time = timeFormat.format(now);
-            [nextMessage, unusedDelay, unusedType] = getPomodoroMessageAndDelay(time, +entryId + 1);
+            const [nextMessage] = getPomodoroMessageAndDelay(time, +entryId + 1);
             showNotification(pomodoroType + ' done. ' + nextMessage);
 
             oscillator.start();

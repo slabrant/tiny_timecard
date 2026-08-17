@@ -14,7 +14,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
 ### Functionality
 - Can add and remove rows for time period entry
 - Can edit start, stop, and notes for each row
-- Can export CSV of time
+- Can export CSV of time, including day notes
 - Can modify CSV of time and import back into system
 - Adding a new entry will perform the following:
   - If the previous stop time is empty, insert the current time as the stop time of the previous entry
