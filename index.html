@@ -27,9 +27,14 @@
         <div class="dayTotal" title="Worked / Break">
             <span id="workedTotal"></span> / <span id="breakTotal" class="breakTotal"></span>
         </div>
-        <label for="dayNotes">Notes:</label>
-        <textarea id="dayNotes"></textarea>
+        <button id="noteBoxesButton" title="Set Notes Boxes">...</button>
+        <input id="noteBoxesInput" type="text" title="Box titles and how many of twelve columns each takes, such as Notes:12, Blockers:6" hidden>
+        <div id="noteBoxes"></div>
         <div id="pomodoroDisplay" class="pomodoroDisplay" hidden>Click to activate pomodoro timer.</div>
+        <label id="noteBoxTemplate" hidden>
+            <span class="noteBoxTitle"></span>
+            <textarea class="noteBoxNotes" rows="1"></textarea>
+        </label>
         <div id="rowTemplate" hidden>
             <input class="start time flex_thin" type="time" title="Start Time">
             <input class="stop time flex_thin" type="time" title="Stop Time">

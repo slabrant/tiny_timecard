@@ -79,9 +79,35 @@ input {
     flex: 1 1 0;
 }
 
-#dayNotes {
+/* Boxes are laid out on a twelve column grid, and each one says how many of them it takes. */
+#noteBoxes {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0 4px;
+}
+
+.noteBox {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.noteBoxNotes {
+    box-sizing: border-box;
     width: 100%;
     resize: none;
+}
+
+#noteBoxesInput {
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    border: 1px solid #b0b0b0;
+    border-radius: 5px;
+    font: 12pt sans-serif;
+    height: 1.5em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+    width: 24em;
 }
 
 .row.break input, .row.break textarea {
