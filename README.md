@@ -14,6 +14,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
 ### Functionality
 - Can add and remove rows for time period entry
 - Can edit start, stop, and notes for each row
+  - The notes field takes multiple lines, and grows to fit what is typed into it
 - Can export CSV of time, including day notes
 - Can modify CSV of time and import back into system
 - Adding a new entry will perform the following:

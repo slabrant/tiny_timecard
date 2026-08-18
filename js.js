@@ -169,7 +169,7 @@ document.getElementById('pomodoroTimesInput').addEventListener('blur', (e) => {
 
 document.getElementById('dayNotes').addEventListener('input', (e) => {
     checkPageChanged();
-    e.target.rows = (e.target.value.match(/\n/g) || []).length + 1;
+    sizeNotesField(e.target);
 });
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -199,8 +199,10 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.start').value = start;
     newRow.querySelector('.stop').value = stop;
     newRow.querySelector('.notes').value = notes;
+    sizeNotesField(newRow.querySelector('.notes'));
     newRow.hidden = false;
 
+    // Notes are a textarea, so the only inputs left in a row are the two times.
     Array.from(newRow.getElementsByTagName('input')).forEach(input => {
         input.addEventListener('input', () => {
             checkPageChanged();
@@ -208,23 +210,26 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
             if (input.classList.contains('start') && newRow === getRowElements().pop())
                 setPomodoroTimer(input.value, getRowIndex(newRow));
         })
-        if (!input.classList.contains('notes')) {
-            input.addEventListener('focus', e => {
-                if ('' === e.target.value) {
-                    const now = new Date;
-                    e.target.value = timeFormat.format(now);
-                    checkPageChanged();
-                    updateDayTotal();
-                }
-            });
-            input.addEventListener('keydown', e => {
-                if ('Backspace' === e.key) {
-                    e.target.value = '';
-                    checkPageChanged();
-                    updateDayTotal();
-                }
-            });
-        }
+        input.addEventListener('focus', e => {
+            if ('' === e.target.value) {
+                const now = new Date;
+                e.target.value = timeFormat.format(now);
+                checkPageChanged();
+                updateDayTotal();
+            }
+        });
+        input.addEventListener('keydown', e => {
+            if ('Backspace' === e.key) {
+                e.target.value = '';
+                checkPageChanged();
+                updateDayTotal();
+            }
+        });
+    });
+
+    newRow.querySelector('.notes').addEventListener('input', (e) => {
+        checkPageChanged();
+        sizeNotesField(e.target);
     });
 
     newRow.querySelector('.remove').addEventListener('click', (e) => {
@@ -545,7 +550,7 @@ const setPageData = (date) => {
     document.getElementById('rows').innerHTML = '';
     let dayNotesField = document.getElementById('dayNotes');
     dayNotesField.value = day.notes;
-    dayNotesField.rows = (day.notes.match(/\n/g) || []).length + 1;
+    sizeNotesField(dayNotesField);
 
     day.entries.forEach((entry) => {
         addRow(entry);
@@ -595,6 +600,11 @@ const setPomodoroTimer = (start, entryId) => {
             oscillator.stop(context.currentTime + 2);
         }, [delay]);
     }
+};
+
+// A notes field grows to fit the lines typed into it, so nothing it holds is hidden.
+const sizeNotesField = (notesField) => {
+    notesField.rows = (notesField.value.match(/\n/g) || []).length + 1;
 };
 
 const showNotification = (message) => {

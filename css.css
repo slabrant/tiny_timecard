@@ -62,6 +62,7 @@ input {
 
 .row {
     display: flex;
+    align-items: flex-start;
 }
 
 .flex_thin {
@@ -77,7 +78,7 @@ input {
     resize: none;
 }
 
-.row.break input {
+.row.break input, .row.break textarea {
     background-color: #ececec;
 }
 
@@ -89,4 +90,11 @@ input {
 
 .breakTotal {
     color: #808080;
+}
+
+textarea.notes {
+    box-sizing: border-box;
+    margin-right: 4px;
+    resize: none;
+    font: 12pt sans-serif;
 }
