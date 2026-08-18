@@ -16,9 +16,8 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Can edit start, stop, and notes for each row
   - The notes field takes multiple lines, and grows to fit what is typed into it
 - Notes for the day sit in titled boxes, laid out on a twelve column grid
-  - The `...` button above them opens a field for the layout: a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
+  - The layout is set in the settings, as a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
   - A title on its own, such as `Notes`, takes the full twelve columns
-  - The field puts itself away once it loses focus, so it is only on screen while the layout is being set
   - The layout is one setting shared by every day, so a box made once is on all of them, empty until something is typed in it
   - Dropping a box from the layout only stops drawing it. Its text is kept, and putting the title back brings the text back
 - Can export CSV of time, including day notes
@@ -34,9 +33,11 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - Break periods are the ones marked by the pomodoro cycle, so with the timer off the whole day counts as worked
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
+- The `...` button opens the settings, which hold the pomodoro cycle and the notes box layout
+  - The button puts them away again, so they are only on screen while a setting is being changed
+  - A setting takes effect as soon as its field is left or `Enter` is pressed, and unusable text is dropped
 - With pomodoro timer enabled, will chime at the end of each work session and break
-  - The `...` button beside the checkbox opens a field for the cycle: a comma separated list of minutes that alternates work and break, such as `45,5,40,5,35,5,30,30`
-  - The field puts itself away once it loses focus, so it is only on screen while the cycle is being set
+  - The cycle is set in the settings, as a comma separated list of minutes that alternates work and break, such as `45,5,40,5,35,5,30,30`
   - The cycle repeats from the start once its last period is done
   - Starting the list with a `0`, such as `0,5,45`, begins the cycle on a break instead of a work period
   - The timer display counts down how many work sessions are left in the cycle, so a cycle that covers a whole day shows the work left in the day

@@ -48,16 +48,26 @@ input {
     margin-right: 4px;
 }
 
-#pomodoroTimesInput {
-    box-sizing: border-box;
+.setting {
+    display: block;
     margin-bottom: 4px;
+}
+
+/* The titles share a width, so the fields beside them line up. */
+.settingTitle {
+    display: inline-block;
+    width: 8em;
+}
+
+.settingField {
+    box-sizing: border-box;
     border: 1px solid #b0b0b0;
     border-radius: 5px;
     font: 12pt sans-serif;
     height: 1.5em;
     padding-left: 0.4em;
     padding-right: 0.4em;
-    width: 13em;
+    width: 24em;
 }
 
 .row {
@@ -96,18 +106,6 @@ input {
     box-sizing: border-box;
     width: 100%;
     resize: none;
-}
-
-#noteBoxesInput {
-    box-sizing: border-box;
-    margin-bottom: 4px;
-    border: 1px solid #b0b0b0;
-    border-radius: 5px;
-    font: 12pt sans-serif;
-    height: 1.5em;
-    padding-left: 0.4em;
-    padding-right: 0.4em;
-    width: 24em;
 }
 
 .row.break input, .row.break textarea {

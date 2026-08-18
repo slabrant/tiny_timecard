@@ -20,15 +20,22 @@
             Pomodoro
             <input type="checkbox" id="pomodoroInput">
         </label>
-        <button id="pomodoroTimesButton" title="Set Pomodoro Cycle" hidden>...</button>
-        <input id="pomodoroTimesInput" type="text" inputmode="numeric" title="Minutes per period, alternating work and break. Start with 0 to begin on a break." hidden>
+        <button id="settingsButton" title="Settings">...</button>
+        <div id="settings" hidden>
+            <label class="setting">
+                <span class="settingTitle">Pomodoro cycle:</span>
+                <input id="pomodoroTimesInput" class="settingField" type="text" inputmode="numeric" title="Minutes per period, alternating work and break. Start with 0 to begin on a break.">
+            </label>
+            <label class="setting">
+                <span class="settingTitle">Notes boxes:</span>
+                <input id="noteBoxesInput" class="settingField" type="text" title="Box titles and how many of twelve columns each takes, such as Notes:12, Blockers:6">
+            </label>
+        </div>
         <hr>
         <div id="rows"></div>
         <div class="dayTotal" title="Worked / Break">
             <span id="workedTotal"></span> / <span id="breakTotal" class="breakTotal"></span>
         </div>
-        <button id="noteBoxesButton" title="Set Notes Boxes">...</button>
-        <input id="noteBoxesInput" type="text" title="Box titles and how many of twelve columns each takes, such as Notes:12, Blockers:6" hidden>
         <div id="noteBoxes"></div>
         <div id="pomodoroDisplay" class="pomodoroDisplay" hidden>Click to activate pomodoro timer.</div>
         <label id="noteBoxTemplate" hidden>

@@ -133,21 +133,23 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
     localStorage.setItem('pomodoroOn', pomodoroOn);
     document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
-    document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
-    document.getElementById('pomodoroTimesInput').hidden = true;
     markBreakRows();
     updateDayTotal();
     resetPomodoroTimer();
 });
 
-// The field puts itself away as soon as it loses focus, so this only ever needs to open it.
-document.getElementById('pomodoroTimesButton').addEventListener('click', (e) => {
-    const timesInput = document.getElementById('pomodoroTimesInput');
+// The settings stay on screen while they are being set, so this toggles rather than hides on blur.
+document.getElementById('settingsButton').addEventListener('click', (e) => {
+    const settings = document.getElementById('settings');
 
-    timesInput.hidden = false;
-    timesInput.value = getPomodoroTimes().join(',');
-    timesInput.focus();
-    timesInput.select();
+    settings.hidden = !settings.hidden;
+    if (settings.hidden)
+        return;
+
+    // Opened on whatever is actually in effect, so the fields never show a stale setting.
+    showSettings();
+    document.getElementById('pomodoroTimesInput').focus();
+    document.getElementById('pomodoroTimesInput').select();
 });
 
 document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => {
@@ -157,7 +159,7 @@ document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => 
         localStorage.setItem('pomodoroTimes', JSON.stringify(times));
 
     // Unusable text is dropped, so the field always shows the times actually in effect.
-    e.target.value = getPomodoroTimes().join(',');
+    showSettings();
     markBreakRows();
     updateDayTotal();
     restartPomodoroTimer();
@@ -168,20 +170,6 @@ document.getElementById('pomodoroTimesInput').addEventListener('keydown', (e) =>
         e.target.blur();
 });
 
-document.getElementById('pomodoroTimesInput').addEventListener('blur', (e) => {
-    e.target.hidden = true;
-});
-
-// The field puts itself away as soon as it loses focus, so this only ever needs to open it.
-document.getElementById('noteBoxesButton').addEventListener('click', (e) => {
-    const boxesInput = document.getElementById('noteBoxesInput');
-
-    boxesInput.hidden = false;
-    boxesInput.value = buildNoteBoxesText(getNoteBoxes());
-    boxesInput.focus();
-    boxesInput.select();
-});
-
 document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
     const boxes = parseNoteBoxes(e.target.value);
 
@@ -189,7 +177,7 @@ document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
         localStorage.setItem('noteBoxes', JSON.stringify(boxes));
 
     // Unusable text is dropped, so the field always shows the boxes actually in effect.
-    e.target.value = buildNoteBoxesText(getNoteBoxes());
+    showSettings();
 
     // The boxes are redrawn around what is already typed, so changing the layout keeps it.
     showNoteBoxes(getPageData().notes);
@@ -199,10 +187,6 @@ document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
 document.getElementById('noteBoxesInput').addEventListener('keydown', (e) => {
     if ('Enter' === e.key)
         e.target.blur();
-});
-
-document.getElementById('noteBoxesInput').addEventListener('blur', (e) => {
-    e.target.hidden = true;
 });
 
 const dateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -767,6 +751,12 @@ const sizeNotesField = (notesField) => {
 };
 
 // The layout says which boxes are drawn, and the day says what goes in them.
+// Every field shows the setting actually in effect, so unusable text typed into one leaves no trace.
+const showSettings = () => {
+    document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
+    document.getElementById('noteBoxesInput').value = buildNoteBoxesText(getNoteBoxes());
+};
+
 const showNoteBoxes = (notes) => {
     document.getElementById('noteBoxes').innerHTML = '';
 
@@ -811,8 +801,7 @@ let pomodoroTimeout;
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
 
-document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
-document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
+showSettings();
 
 document.getElementById('dateInput').value = date;
 setPageData(date);
