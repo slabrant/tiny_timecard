@@ -96,5 +96,6 @@ textarea.notes {
     box-sizing: border-box;
     margin-right: 4px;
     resize: none;
-    font: 12pt sans-serif;
+    /* Only the family needs saying: a textarea already matches an input's size, but defaults to monospace. */
+    font-family: sans-serif;
 }
