@@ -48,6 +48,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
     addRow(newEntry);
 
     saveEntries(entries, date);
+    markBreakRows();
     setPomodoroTimer(time, entries.length - 1);
 });
 
@@ -128,6 +129,7 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
     document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
     document.getElementById('pomodoroTimesInput').hidden = true;
+    markBreakRows();
     resetPomodoroTimer();
 });
 
@@ -149,6 +151,7 @@ document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => 
 
     // Unusable text is dropped, so the field always shows the times actually in effect.
     e.target.value = getPomodoroTimes().join(',');
+    markBreakRows();
     restartPomodoroTimer();
 });
 
@@ -230,6 +233,7 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
             newRow.remove();
             const entries = getPageData().entries;
             saveEntries(entries, date);
+            markBreakRows();
             setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
         }
     });
@@ -309,22 +313,29 @@ const getPageData = () => {
     };
 };
 
-const getPomodoroMessageAndDelay = (start, entryId) => {
+// Splits the configured times into the repeating cycle, and a test for which of its positions are breaks.
+const getPomodoroCycle = () => {
     const pomodoroTimes = getPomodoroTimes();
 
     // A leading zero shifts the cycle so it starts on a break instead of a work period.
     const startsOnBreak = (pomodoroTimes[0] === 0);
-    const cycle = startsOnBreak ? pomodoroTimes.slice(1) : pomodoroTimes;
 
-    const isBreakAt = (index) => (((index % 2) === 1) !== startsOnBreak);
+    return {
+        times: startsOnBreak ? pomodoroTimes.slice(1) : pomodoroTimes,
+        isBreakAt: (index) => (((index % 2) === 1) !== startsOnBreak),
+    };
+};
 
-    const pomoCount = entryId % cycle.length;
-    const pomodoroTime = cycle[pomoCount];
-    const pomodoroType = isBreakAt(pomoCount) ? "Break" : "Work";
+const getPomodoroMessageAndDelay = (start, entryId) => {
+    const cycle = getPomodoroCycle();
+
+    const pomoCount = entryId % cycle.times.length;
+    const pomodoroTime = cycle.times[pomoCount];
+    const pomodoroType = cycle.isBreakAt(pomoCount) ? "Break" : "Work";
 
     // The cycle covers a whole day, so the work left in it is the work left today.
-    const sessionsLeft = cycle.reduce((count, time, index) => {
-        return (pomoCount < index && !isBreakAt(index)) ? count + 1 : count;
+    const sessionsLeft = cycle.times.reduce((count, time, index) => {
+        return (pomoCount < index && !cycle.isBreakAt(index)) ? count + 1 : count;
     }, 0);
 
     const nowMs = Date.now();
@@ -359,6 +370,16 @@ const getRowElements = () => {
 
 const getRowIndex = (rowElement) => {
     return getRowElements().indexOf(rowElement);
+};
+
+// Rows line up with the cycle one for one, so a row's position says whether it is a break.
+const markBreakRows = () => {
+    const cycle = getPomodoroCycle();
+
+    getRowElements().forEach((rowElement, index) => {
+        const isBreak = pomodoroOn && cycle.isBreakAt(index % cycle.times.length);
+        rowElement.classList.toggle('break', isBreak);
+    });
 };
 
 const normalizeDay = (day) => {
@@ -490,6 +511,8 @@ const setPageData = (date) => {
     day.entries.forEach((entry) => {
         addRow(entry);
     });
+
+    markBreakRows();
 
     let pomoDisp = document.getElementById('pomodoroDisplay');
     let newPomoDisp = pomoDisp.cloneNode(true);

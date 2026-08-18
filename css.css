@@ -76,3 +76,7 @@ input {
     width: 100%;
     resize: none;
 }
+
+.row.break input {
+    background-color: #ececec;
+}
