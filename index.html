@@ -24,6 +24,9 @@
         <input id="pomodoroTimesInput" type="text" inputmode="numeric" title="Minutes per period, alternating work and break. Start with 0 to begin on a break." hidden>
         <hr>
         <div id="rows"></div>
+        <div class="dayTotal" title="Worked / Break">
+            <span id="workedTotal"></span> / <span id="breakTotal" class="breakTotal"></span>
+        </div>
         <label for="dayNotes">Notes:</label>
         <textarea id="dayNotes"></textarea>
         <div id="pomodoroDisplay" class="pomodoroDisplay" hidden>Click to activate pomodoro timer.</div>

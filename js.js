@@ -49,6 +49,7 @@ document.getElementById('addButton').addEventListener('click', (e) => {
 
     saveEntries(entries, date);
     markBreakRows();
+    updateDayTotal();
     setPomodoroTimer(time, entries.length - 1);
 });
 
@@ -130,6 +131,7 @@ document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     document.getElementById('pomodoroTimesButton').hidden = !pomodoroOn;
     document.getElementById('pomodoroTimesInput').hidden = true;
     markBreakRows();
+    updateDayTotal();
     resetPomodoroTimer();
 });
 
@@ -152,6 +154,7 @@ document.getElementById('pomodoroTimesInput').addEventListener('change', (e) => 
     // Unusable text is dropped, so the field always shows the times actually in effect.
     e.target.value = getPomodoroTimes().join(',');
     markBreakRows();
+    updateDayTotal();
     restartPomodoroTimer();
 });
 
@@ -201,6 +204,7 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
     Array.from(newRow.getElementsByTagName('input')).forEach(input => {
         input.addEventListener('input', () => {
             checkPageChanged();
+            updateDayTotal();
             if (input.classList.contains('start') && newRow === getRowElements().pop())
                 setPomodoroTimer(input.value, getRowIndex(newRow));
         })
@@ -210,12 +214,14 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
                     const now = new Date;
                     e.target.value = timeFormat.format(now);
                     checkPageChanged();
+                    updateDayTotal();
                 }
             });
             input.addEventListener('keydown', e => {
                 if ('Backspace' === e.key) {
                     e.target.value = '';
                     checkPageChanged();
+                    updateDayTotal();
                 }
             });
         }
@@ -234,6 +240,7 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
             const entries = getPageData().entries;
             saveEntries(entries, date);
             markBreakRows();
+            updateDayTotal();
             setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
         }
     });
@@ -282,8 +289,27 @@ const csvRow = (fields) => {
     return fields.map(field => `"${String(field).replaceAll('"', '""')}"`).join(',') + '\n';
 };
 
+// Minutes read as hours and minutes, so a day total looks like the times above it.
+const formatMinutes = (minutes) => {
+    return Math.floor(minutes / 60) + ':' + String(minutes % 60).padStart(2, '0');
+};
+
 const getDay = (date) => {
     return normalizeDay(getDays()[date]);
+};
+
+// Break rows are marked out by the pomodoro cycle, so anything not marked counts as worked.
+const getDayTotals = () => {
+    return getRowElements().reduce((totals, rowElement) => {
+        const minutes = getEntryMinutes(rowElement);
+
+        if (rowElement.classList.contains('break'))
+            totals.breakMinutes += minutes;
+        else
+            totals.workedMinutes += minutes;
+
+        return totals;
+    }, {workedMinutes: 0, breakMinutes: 0});
 };
 
 const getDays = () => {
@@ -294,6 +320,19 @@ const getDays = () => {
     }
 
     return days;
+};
+
+// A period is only counted once both of its ends are filled in.
+const getEntryMinutes = (rowElement) => {
+    const startPieces = rowElement.querySelector('.start').value.split(':');
+    const stopPieces = rowElement.querySelector('.stop').value.split(':');
+
+    if (startPieces.length < 2 || stopPieces.length < 2)
+        return 0;
+
+    const minutes = (+stopPieces[0] * 60 + +stopPieces[1]) - (+startPieces[0] * 60 + +startPieces[1]);
+
+    return (0 < minutes) ? minutes : 0;
 };
 
 const getPageData = () => {
@@ -513,6 +552,7 @@ const setPageData = (date) => {
     });
 
     markBreakRows();
+    updateDayTotal();
 
     let pomoDisp = document.getElementById('pomodoroDisplay');
     let newPomoDisp = pomoDisp.cloneNode(true);
@@ -578,6 +618,13 @@ const updateDateByAmount = (amount) => {
     document.getElementById('dateInput').value = date;
     setPageData(date);
     checkPageChanged();
+};
+
+const updateDayTotal = () => {
+    const totals = getDayTotals();
+
+    document.getElementById('workedTotal').innerText = formatMinutes(totals.workedMinutes);
+    document.getElementById('breakTotal').innerText = formatMinutes(totals.breakMinutes);
 };
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);

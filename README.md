@@ -20,6 +20,9 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - If the previous stop time is empty, insert the current time as the stop time of the previous entry
   - insert the previous stop time as the start time of the new entry
 - Ctrl + S will save the data to local storage and will not allow downloading the page as normal
+- Shows a day total under the entries: time worked, then time on break in gray after a slash
+  - A period is counted once both its start and stop are filled, so the period in progress joins the total when it is closed
+  - Break periods are the ones marked by the pomodoro cycle, so with the timer off the whole day counts as worked
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
 - With pomodoro timer enabled, will chime at the end of each work session and break

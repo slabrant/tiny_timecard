@@ -80,3 +80,13 @@ input {
 .row.break input {
     background-color: #ececec;
 }
+
+.dayTotal {
+    font: 12pt sans-serif;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.breakTotal {
+    color: #808080;
+}
