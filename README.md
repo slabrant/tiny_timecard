@@ -27,6 +27,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - The field puts itself away once it loses focus, so it is only on screen while the cycle is being set
   - The cycle repeats from the start once its last period is done
   - Starting the list with a `0`, such as `0,5,45`, begins the cycle on a break instead of a work period
+  - The timer display counts down how many work sessions are left in the cycle, so a cycle that covers a whole day shows the work left in the day
 
 ## Contact
 Let me know if you have any feedback or suggestions via email: glasstacojar@gmail.com

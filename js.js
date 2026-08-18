@@ -316,10 +316,16 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const startsOnBreak = (pomodoroTimes[0] === 0);
     const cycle = startsOnBreak ? pomodoroTimes.slice(1) : pomodoroTimes;
 
+    const isBreakAt = (index) => (((index % 2) === 1) !== startsOnBreak);
+
     const pomoCount = entryId % cycle.length;
     const pomodoroTime = cycle[pomoCount];
-    const isBreak = ((pomoCount % 2) === 1) !== startsOnBreak;
-    const pomodoroType = isBreak ? "Break" : "Work";
+    const pomodoroType = isBreakAt(pomoCount) ? "Break" : "Work";
+
+    // The cycle covers a whole day, so the work left in it is the work left today.
+    const sessionsLeft = cycle.reduce((count, time, index) => {
+        return (pomoCount < index && !isBreakAt(index)) ? count + 1 : count;
+    }, 0);
 
     const nowMs = Date.now();
     const now = new Date;
@@ -327,7 +333,10 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
     const delay = newDate - nowMs;
 
-    const message = pomodoroType + " until " + displayTimeFormat.format(newDate);
+    const sessionsNote = (0 === sessionsLeft) ?
+        "last session" :
+        sessionsLeft + " session" + ((1 === sessionsLeft) ? "" : "s") + " left";
+    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - " + sessionsNote;
 
     return [message, delay, pomodoroType];
 }
