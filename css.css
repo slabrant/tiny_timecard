@@ -63,6 +63,12 @@ input {
 .row {
     display: flex;
     align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+/* The row carries the gap itself, so a tall row is spaced like a short one. */
+.row .remove {
+    margin-bottom: 0;
 }
 
 .flex_thin {
