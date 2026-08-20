@@ -41,6 +41,18 @@ button:hover, .buttonLabel:hover {
 
 hr {
     flex: 0 0 auto;
+    /* Drawn rather than left to the browser, so the divider reads as one at any zoom. */
+    border: none;
+    border-top: 1px solid #767676;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    /* A rule is centred by margins of its own, which would leave it no width to be seen at as a flex item. */
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* The first one sits straight under the toolbar, with the toolbar's own spacing above it. */
+#toolbar + hr {
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -63,9 +75,9 @@ body {
     flex: 0 0 auto;
 }
 
-/* An even share each, and each scrolls on its own, so neither can push the other off the page. */
+/* A share each by what is in them, and each scrolls on its own, so neither can push the other off the page. */
 #rows, #fields {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     overflow-y: auto;
     min-height: 4em;
 }
