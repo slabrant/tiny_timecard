@@ -157,7 +157,7 @@ body {
     margin-bottom: 4px;
 }
 
-.breakTotal {
+.breakTotal, .endOfDay {
     color: #808080;
 }
 

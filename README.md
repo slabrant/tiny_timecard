@@ -33,10 +33,10 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - insert the previous stop time as the start time of the new entry
 - Ctrl + S will save the data to local storage and will not allow downloading the page as normal
 - The `Goal` setting is how much worked time makes a day, as hours and minutes, such as `8:00`
-  - `EOD` on the timer display is the time the goal will be met, worked out from the goal and the work done so far, so it says nothing about the pomodoro cycle
+  - The gray time on the timer display is when the goal will be met, worked out from the goal and the work done so far, so it says nothing about the pomodoro cycle
   - Only worked time counts towards it, so taking a break carries the end of the day out with it, and working holds it still
   - The period in progress counts towards the goal, whether or not it has been stopped yet
-  - Once the goal is met the display says `EOD met`
+  - Once the goal is met that time reads `met` instead
 - Shows a day total under the entries: time worked, then time on break in gray after a slash
   - A period is counted once both its start and stop are filled, so the period in progress joins the total when it is closed
   - Break periods are the ones marked by the pomodoro cycle, so with the timer off the whole day counts as worked
@@ -50,7 +50,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - The cycle is set in the settings, as a comma separated list of minutes that alternates work and break, such as `45,5,40,5,35,5,30,30`
   - The cycle repeats from the start once its last period is done
   - Starting the list with a `0`, such as `0,5,45`, begins the cycle on a break instead of a work period
-  - The timer display shows when the current period is up, and `EOD` for when the day's goal will be met
+  - The timer display shows when the current period is up, and after it in gray, when the day's goal will be met
   - Break rows are shaded in the entry list, so work and break periods can be told apart at a glance
 
 ## Ideas

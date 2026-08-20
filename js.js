@@ -505,11 +505,11 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
 
     // The day ends where the goal is met, so what is left of the cycle has no say in it.
     const endOfDayNote = (getGoalMinutes() <= getWorkedMinutes()) ?
-        "EOD met" :
-        "EOD " + displayTimeFormat.format(getEndOfDay());
-    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - " + endOfDayNote;
+        "met" :
+        displayTimeFormat.format(getEndOfDay());
+    const message = pomodoroType + " until " + displayTimeFormat.format(newDate);
 
-    return [message, delay, pomodoroType];
+    return [message, delay, pomodoroType, endOfDayNote];
 }
 
 const getPomodoroTimes = () => {
@@ -728,8 +728,11 @@ const parsePomodoroTimes = (text) => {
 
 // The end of the day is read off the clock, so the display is written again as the clock moves under it.
 const refreshPomodoroDisplay = () => {
-    if (pomodoroOn && pomodoroTimeout)
-        document.getElementById('pomodoroDisplay').innerText = getPomodoroMessageAndDelay(pomodoroStart, pomodoroEntryId)[0];
+    if (pomodoroOn && pomodoroTimeout) {
+        const [message, delay, pomodoroType, endOfDayNote] = getPomodoroMessageAndDelay(pomodoroStart, pomodoroEntryId);
+
+        showPomodoroMessage(message, endOfDayNote);
+    }
 };
 
 const resetPomodoroTimer = () => {
@@ -808,9 +811,9 @@ const setPomodoroTimer = (start, entryId) => {
         pomodoroEntryId = +entryId;
 
         
-        const [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, +entryId);
+        const [message, delay, pomodoroType, endOfDayNote] = getPomodoroMessageAndDelay(start, +entryId);
 
-        document.getElementById('pomodoroDisplay').innerText = message;
+        showPomodoroMessage(message, endOfDayNote);
         if (delay < 0)
             return;
 
@@ -884,6 +887,18 @@ const showFields = (notes) => {
     fields.forEach(field => {
         addField(field, notes[field.title] || '');
     });
+};
+
+// The end of the day is a lighter aside to the period in hand, so it is written as its own piece.
+const showPomodoroMessage = (message, endOfDayNote) => {
+    const display = document.getElementById('pomodoroDisplay');
+    const note = document.createElement('span');
+
+    note.className = 'endOfDay';
+    note.innerText = ' - ' + endOfDayNote;
+
+    display.innerText = message;
+    display.appendChild(note);
 };
 
 const showNotification = (message) => {
