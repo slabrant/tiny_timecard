@@ -183,9 +183,8 @@ document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
     // Unusable text is dropped, so the field always shows the boxes actually in effect.
     showSettings();
 
-    // Text in a box the layout is about to stop drawing is put away first, so changing the layout cannot eat it.
-    saveNotes(getPageData().notes, date);
-    showNoteBoxes(getDay(date).notes);
+    // The fields are redrawn around what is already typed, and nothing is saved that was not asked to be.
+    showNoteBoxes(getPageData().notes);
     checkPageChanged();
 });
 
@@ -694,18 +693,6 @@ const saveDays = (days) => {
     setPageData(date);
 };
 
-// The day's own half of a save, for when the layout changes under text that has not been saved yet.
-const saveNotes = (notes, date) => {
-    let days = getDays();
-    if (!days[date])
-        days[date] = normalizeDay();
-
-    days[date].notes = notes;
-
-    localStorage.setItem('days', JSON.stringify(days));
-    checkPageChanged();
-};
-
 const setPageData = (date) => {
     sessionStorage.setItem('date', date);
     let day = getDay(date);
@@ -783,17 +770,25 @@ const sizeAllNotesFields = () => {
     document.querySelectorAll('#rows .notes, #noteBoxes .noteBoxNotes').forEach(sizeNotesField);
 };
 
-// The layout says which boxes are drawn, and the day says what goes in them.
 // Every field shows the setting actually in effect, so unusable text typed into one leaves no trace.
 const showSettings = () => {
     document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
     document.getElementById('noteBoxesInput').value = buildNoteBoxesText(getNoteBoxes());
 };
 
+// The layout says which fields are drawn, and the day says what goes in them.
 const showNoteBoxes = (notes) => {
+    let boxes = getNoteBoxes();
+
+    // Text the layout has no field for is drawn all the same, so a day's text is always somewhere it can be seen and saved.
+    Object.keys(notes).forEach(title => {
+        if (!boxes.some(box => box.title === title))
+            boxes.push({title: title, columns: noteBoxColumns});
+    });
+
     document.getElementById('noteBoxes').innerHTML = '';
 
-    getNoteBoxes().forEach(box => {
+    boxes.forEach(box => {
         addNoteBox(box, notes[box.title] || '');
     });
 };

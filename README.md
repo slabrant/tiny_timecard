@@ -15,15 +15,16 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Can add and remove rows for time period entry
 - Can edit start, stop, and notes for each row
   - The notes field takes multiple lines, and grows to fit what is typed into it
-- Notes for the day sit in titled boxes, laid out on a twelve column grid
-  - The layout is set in the settings, as a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
+- Notes for the day sit in titled fields, laid out on a twelve column grid
+  - The `Fields` setting is a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
   - A title on its own, such as `Notes`, takes the full twelve columns
-  - The layout is one setting shared by every day, so a box made once is on all of them, empty until something is typed in it
-  - Dropping a box from the layout, or renaming one, only stops drawing it. Its text is kept, and putting the title back brings the text back
-  - Changing the layout saves the day's notes first, so text that has not been saved yet is kept along with the rest
+  - The setting is shared by every day, so a field made once is on all of them, empty until something is typed in it
+  - A field holding text is on the page whether the setting names it or not, so changing the setting never puts text out of reach
+  - A field the setting drops therefore goes only once it is empty, and renaming one leaves the old title on the page with its text
+  - Nothing is written by changing the setting: text that has not been saved is still unsaved, and saving is what keeps it
 - Can export CSV of time, including day notes
-  - The columns after the date hold the day's notes, one box each, written as `Title: text`
-  - Boxes hold their column across every day, so the notes line up as columns in a spreadsheet
+  - The columns after the date hold the day's notes, one field each, written as `Title: text`
+  - Fields hold their column across every day, so the notes line up as columns in a spreadsheet
 - Can modify CSV of time and import back into system
 - Adding a new entry will perform the following:
   - If the previous stop time is empty, insert the current time as the stop time of the previous entry
