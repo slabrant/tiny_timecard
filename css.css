@@ -40,6 +40,7 @@ button:hover, .buttonLabel:hover {
 }
 
 hr {
+    flex: 0 0 auto;
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -48,26 +49,50 @@ input {
     margin-right: 4px;
 }
 
+/* The page is a stack, so the entries and the fields can each be given a share of what is left. */
+body {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    padding: 8px;
+}
+
+#toolbar {
+    flex: 0 0 auto;
+}
+
+/* An even share each, and each scrolls on its own, so neither can push the other off the page. */
+#rows, #fields {
+    flex: 1 1 0;
+    overflow-y: auto;
+    min-height: 4em;
+}
+
 .setting {
-    display: block;
+    display: flex;
+    align-items: center;
     margin-bottom: 4px;
 }
 
 /* The titles share a width, so the fields beside them line up. */
 .settingTitle {
-    display: inline-block;
-    width: 8em;
+    flex: 0 0 8em;
 }
 
 .settingField {
     box-sizing: border-box;
+    /* Whatever width is left over, since a list of fields gets long and has to be read to be edited. */
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: 0;
     border: 1px solid #b0b0b0;
     border-radius: 5px;
     font: 12pt sans-serif;
     height: 1.5em;
     padding-left: 0.4em;
     padding-right: 0.4em;
-    width: 24em;
 }
 
 .row {
@@ -114,6 +139,7 @@ input {
 }
 
 .dayTotal {
+    flex: 0 0 auto;
     font: 12pt sans-serif;
     margin-top: 4px;
     margin-bottom: 4px;

@@ -36,6 +36,10 @@ A field's place is worked out from the fields before it, so growing a field
 never moves that field, only the ones after it. That is what keeps it from
 shifting under the cursor while it is being typed in.
 
+`#fields` now scrolls on its own, taking half the page, so the height in step 6
+is the height of its contents rather than of the page. The container keeps its
+`overflow-y` and its flex share, and only the placing inside it changes.
+
 ## What has to call it
 
 - `showFields()`, once the fields are on the page

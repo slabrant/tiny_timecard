@@ -35,6 +35,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Shows a day total under the entries: time worked, then time on break in gray after a slash
   - A period is counted once both its start and stop are filled, so the period in progress joins the total when it is closed
   - Break periods are the ones marked by the pomodoro cycle, so with the timer off the whole day counts as worked
+- The entries and the fields each take half the page and scroll on their own, so neither pushes the other off screen
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
 - The `...` button opens the settings, which hold the pomodoro cycle and the notes box layout

@@ -8,28 +8,30 @@
         <link rel="stylesheet" href="css.css">
     </head>
     <body>
-        <button id="backDayButton" title="Previous Day"><</button>
-        <input id="dateInput" type="date">
-        <button id="nextDayButton" title="Next Day">></button>
-        <button id="addButton" title="Add Row">+</button>
-        <button id="saveButton" title="Save All">Save</button>
-        <button id="downloadButton" title="Download as CSV">Download</button>
-        <label for="uploadButton" title="Upload as CSV" class="buttonLabel">Upload</label>
-        <input type="file" id="uploadButton" accept=".csv" hidden>
-        <label class="buttonLabel">
-            Pomodoro
-            <input type="checkbox" id="pomodoroInput">
-        </label>
-        <button id="settingsButton" title="Settings">...</button>
-        <div id="settings" hidden>
-            <label class="setting">
-                <span class="settingTitle">Pomodoro cycle:</span>
-                <input id="pomodoroTimesInput" class="settingField" type="text" inputmode="numeric" title="Minutes per period, alternating work and break. Start with 0 to begin on a break.">
+        <div id="toolbar">
+            <button id="backDayButton" title="Previous Day"><</button>
+            <input id="dateInput" type="date">
+            <button id="nextDayButton" title="Next Day">></button>
+            <button id="addButton" title="Add Row">+</button>
+            <button id="saveButton" title="Save All">Save</button>
+            <button id="downloadButton" title="Download as CSV">Download</button>
+            <label for="uploadButton" title="Upload as CSV" class="buttonLabel">Upload</label>
+            <input type="file" id="uploadButton" accept=".csv" hidden>
+            <label class="buttonLabel">
+                Pomodoro
+                <input type="checkbox" id="pomodoroInput">
             </label>
-            <label class="setting">
-                <span class="settingTitle">Fields:</span>
-                <input id="fieldsInput" class="settingField" type="text" title="Field titles and how many of twelve columns each takes, such as Notes:12, Blockers:6">
-            </label>
+            <button id="settingsButton" title="Settings">...</button>
+            <div id="settings" hidden>
+                <label class="setting">
+                    <span class="settingTitle">Pomodoro cycle:</span>
+                    <input id="pomodoroTimesInput" class="settingField" type="text" inputmode="numeric" title="Minutes per period, alternating work and break. Start with 0 to begin on a break.">
+                </label>
+                <label class="setting">
+                    <span class="settingTitle">Fields:</span>
+                    <input id="fieldsInput" class="settingField" type="text" title="Field titles and how many of twelve columns each takes, such as Notes:12, Blockers:6">
+                </label>
+            </div>
         </div>
         <hr>
         <div id="rows"></div>
