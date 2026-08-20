@@ -174,6 +174,22 @@ document.getElementById('pomodoroTimesInput').addEventListener('keydown', (e) =>
         e.target.blur();
 });
 
+document.getElementById('goalInput').addEventListener('change', (e) => {
+    const goal = parseGoal(e.target.value);
+
+    if (goal)
+        localStorage.setItem('goal', JSON.stringify(goal));
+
+    // Unusable text is dropped, so the field always shows the goal actually in effect.
+    showSettings();
+    refreshPomodoroDisplay();
+});
+
+document.getElementById('goalInput').addEventListener('keydown', (e) => {
+    if ('Enter' === e.key)
+        e.target.blur();
+});
+
 document.getElementById('fieldsInput').addEventListener('change', (e) => {
     const fields = parseFields(e.target.value);
 
@@ -208,6 +224,9 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
     minute: '2-digit',
     hour12: true,
 });
+
+// A day's work is done once this much of it has been worked, until it is set to something else.
+const defaultGoalMinutes = 8 * 60;
 
 // Notes sit in titled fields laid out on a grid this many columns wide.
 const fieldColumns = 12;
@@ -410,6 +429,20 @@ const getFieldElements = () => {
     return Array.from(document.getElementById('fields').children);
 };
 
+// The end of the day is where the goal is met, so it moves out while a break is taken and holds still while work is done.
+const getEndOfDay = () => {
+    const minutesLeft = getGoalMinutes() - getWorkedMinutes();
+    const now = new Date;
+
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + Math.max(0, minutesLeft));
+};
+
+const getGoalMinutes = () => {
+    const storedGoal = JSON.parse(localStorage.getItem('goal'));
+
+    return (Number.isInteger(storedGoal) && 0 < storedGoal) ? storedGoal : defaultGoalMinutes;
+};
+
 // The layout is one setting shared by every day, so a field made once is there on all of them.
 const getFields = () => {
     const storedFields = JSON.parse(localStorage.getItem('fields'));
@@ -464,20 +497,17 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const pomodoroTime = cycle.times[pomoCount];
     const pomodoroType = cycle.isBreakAt(pomoCount) ? "Break" : "Work";
 
-    // The cycle covers a whole day, so what is left of it after this period is what is left of the day.
-    const minutesLeft = cycle.times.reduce((total, time, index) => {
-        return (pomoCount < index) ? total + time : total;
-    }, 0);
-
     const nowMs = Date.now();
     const now = new Date;
     const lastStartTimeArr = start.split(':');
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
     const delay = newDate - nowMs;
 
-    // Counted on from this period rather than from the clock, so running late moves the end of the day with it.
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime + minutesLeft);
-    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - EOD " + displayTimeFormat.format(endOfDay);
+    // The day ends where the goal is met, so what is left of the cycle has no say in it.
+    const endOfDayNote = (getGoalMinutes() <= getWorkedMinutes()) ?
+        "EOD met" :
+        "EOD " + displayTimeFormat.format(getEndOfDay());
+    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - " + endOfDayNote;
 
     return [message, delay, pomodoroType];
 }
@@ -500,6 +530,27 @@ const getRowElements = () => {
 
 const getRowIndex = (rowElement) => {
     return getRowElements().indexOf(rowElement);
+};
+
+// What the day total holds, plus the period in progress, which is being worked whether or not it has been stopped yet.
+const getWorkedMinutes = () => {
+    const rowElements = getRowElements();
+    const openRow = rowElements[rowElements.length - 1];
+    let worked = getDayTotals().workedMinutes;
+
+    if (openRow && !openRow.classList.contains('break') && '' === openRow.querySelector('.stop').value) {
+        const startPieces = openRow.querySelector('.start').value.split(':');
+
+        if (1 < startPieces.length) {
+            const now = new Date;
+            const minutes = (now.getHours() * 60 + now.getMinutes()) - (+startPieces[0] * 60 + +startPieces[1]);
+
+            if (0 < minutes)
+                worked += minutes;
+        }
+    }
+
+    return worked;
 };
 
 // Rows line up with the cycle one for one, so a row's position says whether it is a break.
@@ -592,6 +643,26 @@ const parseCsv = (text) => {
     return rows;
 };
 
+// Reads hours and minutes, and returns null if it is not usable as a goal.
+const parseGoal = (text) => {
+    const pieces = text.split(':');
+
+    if (2 !== pieces.length)
+        return null;
+
+    const hours = Number(pieces[0]);
+    const minutes = Number(pieces[1]);
+
+    if (!Number.isInteger(hours) || !Number.isInteger(minutes))
+        return null;
+    if (hours < 0 || minutes < 0 || 59 < minutes)
+        return null;
+
+    const total = hours * 60 + minutes;
+
+    return (0 < total) ? total : null;
+};
+
 // Reads a comma separated list of title:columns pairs, and returns null if it is not usable as a layout.
 const parseFields = (text) => {
     let fields = [];
@@ -653,6 +724,12 @@ const parsePomodoroTimes = (text) => {
         return null;
 
     return times;
+};
+
+// The end of the day is read off the clock, so the display is written again as the clock moves under it.
+const refreshPomodoroDisplay = () => {
+    if (pomodoroOn && pomodoroTimeout)
+        document.getElementById('pomodoroDisplay').innerText = getPomodoroMessageAndDelay(pomodoroStart, pomodoroEntryId)[0];
 };
 
 const resetPomodoroTimer = () => {
@@ -726,6 +803,10 @@ const setPageData = (date) => {
 const setPomodoroTimer = (start, entryId) => {
     resetPomodoroTimer();
     if (!pomodoroTimeout && pomodoroOn && start) {
+        // Kept so the display can be written again later without disturbing the timer already set.
+        pomodoroStart = start;
+        pomodoroEntryId = +entryId;
+
         
         const [message, delay, pomodoroType] = getPomodoroMessageAndDelay(start, +entryId);
 
@@ -784,6 +865,7 @@ const sizeAllNotesFields = () => {
 // Every field shows the setting actually in effect, so unusable text typed into one leaves no trace.
 const showSettings = () => {
     document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
+    document.getElementById('goalInput').value = formatMinutes(getGoalMinutes());
     document.getElementById('fieldsInput').value = buildFieldsText(getFields());
 };
 
@@ -843,6 +925,11 @@ if (null === localStorage.getItem('fields') && null !== localStorage.getItem('no
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
 let pomodoroTimeout;
+let pomodoroStart;
+let pomodoroEntryId;
+
+// The end of the day is worked out from the clock, so it is worked out again once a minute.
+setInterval(refreshPomodoroDisplay, 60000);
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
 
