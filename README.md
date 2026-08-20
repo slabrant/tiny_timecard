@@ -19,7 +19,8 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - The layout is set in the settings, as a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
   - A title on its own, such as `Notes`, takes the full twelve columns
   - The layout is one setting shared by every day, so a box made once is on all of them, empty until something is typed in it
-  - Dropping a box from the layout only stops drawing it. Its text is kept, and putting the title back brings the text back
+  - Dropping a box from the layout, or renaming one, only stops drawing it. Its text is kept, and putting the title back brings the text back
+  - Changing the layout saves the day's notes first, so text that has not been saved yet is kept along with the rest
 - Can export CSV of time, including day notes
   - The columns after the date hold the day's notes, one box each, written as `Title: text`
   - Boxes hold their column across every day, so the notes line up as columns in a spreadsheet

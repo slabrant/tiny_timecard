@@ -183,8 +183,9 @@ document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
     // Unusable text is dropped, so the field always shows the boxes actually in effect.
     showSettings();
 
-    // The boxes are redrawn around what is already typed, so changing the layout keeps it.
-    showNoteBoxes(getPageData().notes);
+    // Text in a box the layout is about to stop drawing is put away first, so changing the layout cannot eat it.
+    saveNotes(getPageData().notes, date);
+    showNoteBoxes(getDay(date).notes);
     checkPageChanged();
 });
 
@@ -691,6 +692,18 @@ const saveDay = (day, date) => {
 const saveDays = (days) => {
     localStorage.setItem('days', JSON.stringify(days));
     setPageData(date);
+};
+
+// The day's own half of a save, for when the layout changes under text that has not been saved yet.
+const saveNotes = (notes, date) => {
+    let days = getDays();
+    if (!days[date])
+        days[date] = normalizeDay();
+
+    days[date].notes = notes;
+
+    localStorage.setItem('days', JSON.stringify(days));
+    checkPageChanged();
 };
 
 const setPageData = (date) => {
