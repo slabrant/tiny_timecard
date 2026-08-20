@@ -209,8 +209,9 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
     hour12: true,
 });
 
-// Notes sit in titled fields laid out on a grid this many columns wide.
+// Notes sit in titled fields laid out on a grid this many columns wide, this far apart.
 const fieldColumns = 12;
+const fieldGap = 4;
 const defaultFieldTitle = 'Notes';
 
 const addField = ({title, columns}, text) => {
@@ -221,7 +222,7 @@ const addField = ({title, columns}, text) => {
     newField.classList.add('field');
     // The title is what ties a field to the text it holds, on the page and in the CSV alike.
     newField.dataset.title = title;
-    newField.style.gridColumn = 'span ' + columns;
+    newField.dataset.columns = columns;
     document.getElementById('fields').appendChild(newField);
 
     newField.querySelector('.fieldTitle').innerText = title + ':';
@@ -229,11 +230,10 @@ const addField = ({title, columns}, text) => {
     let notesField = newField.querySelector('.fieldNotes');
     notesField.value = text;
     newField.hidden = false;
-    sizeNotesField(notesField);
 
     notesField.addEventListener('input', (e) => {
         checkPageChanged();
-        sizeNotesField(e.target);
+        layoutFields();
     });
 };
 
@@ -504,6 +504,57 @@ const getRowIndex = (rowElement) => {
 };
 
 // Rows line up with the cycle one for one, so a row's position says whether it is a break.
+// Fields are placed rather than left to flow, so a short one leaves no gap beneath it for the next to clear.
+// A grid gives every field on a row the height of the tallest, which is the space this is here to take back.
+const layoutFields = () => {
+    const container = document.getElementById('fields');
+    const fieldElements = getFieldElements();
+    const trackWidth = (container.clientWidth - (fieldColumns - 1) * fieldGap) / fieldColumns;
+
+    // Nothing can be measured while the page is not laid out, and a width of zero would place everything at once.
+    if (trackWidth <= 0)
+        return;
+
+    // Widths are settled first, because how tall a field needs to be depends on how wide it is.
+    fieldElements.forEach(fieldElement => {
+        const columns = +fieldElement.dataset.columns;
+
+        fieldElement.style.width = (columns * trackWidth + (columns - 1) * fieldGap) + 'px';
+        sizeNotesField(fieldElement.querySelector('.fieldNotes'));
+    });
+
+    // How far down each column has been filled so far, which is what a field is looking for a gap in.
+    let filled = new Array(fieldColumns).fill(0);
+
+    fieldElements.forEach(fieldElement => {
+        const columns = +fieldElement.dataset.columns;
+        let start = 0;
+        let top = Infinity;
+
+        // As high as it will go, and as far left as it can get at that height, so the order still reads left to right.
+        for (let candidate = 0; candidate <= fieldColumns - columns; candidate++) {
+            const candidateTop = Math.max(...filled.slice(candidate, candidate + columns));
+
+            if (candidateTop < top) {
+                top = candidateTop;
+                start = candidate;
+            }
+        }
+
+        fieldElement.style.left = (start * (trackWidth + fieldGap)) + 'px';
+        fieldElement.style.top = top + 'px';
+
+        // Only the columns it sits over are filled in, so a field beside it can still rise past it.
+        const bottom = top + fieldElement.offsetHeight + fieldGap;
+        for (let column = start; column < start + columns; column++) {
+            filled[column] = bottom;
+        }
+    });
+
+    // The fields are out of the flow, so the room they take has to be given back to the page.
+    container.style.height = Math.max(...filled) + 'px';
+};
+
 const markBreakRows = () => {
     const cycle = getPomodoroCycle();
 
@@ -673,6 +724,8 @@ const removeEmptyFields = () => {
         if (!titles.includes(fieldElement.dataset.title) && '' === fieldElement.querySelector('.fieldNotes').value)
             fieldElement.remove();
     });
+
+    layoutFields();
 };
 
 const restartPomodoroTimer = () => {
@@ -779,7 +832,8 @@ const sizeNotesField = (notesField) => {
 
 // A change of width moves where lines wrap, which changes the room every field needs.
 const sizeAllNotesFields = () => {
-    document.querySelectorAll('#rows .notes, #fields .fieldNotes').forEach(sizeNotesField);
+    document.querySelectorAll('#rows .notes').forEach(sizeNotesField);
+    layoutFields();
 };
 
 // Every field shows the setting actually in effect, so unusable text typed into one leaves no trace.
@@ -803,6 +857,8 @@ const showFields = (notes) => {
     fields.forEach(field => {
         addField(field, notes[field.title] || '');
     });
+
+    layoutFields();
 };
 
 const showNotification = (message) => {

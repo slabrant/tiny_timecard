@@ -89,17 +89,16 @@ input {
     flex: 1 1 0;
 }
 
-/* Fields are laid out on a twelve column grid, and each one says how many of them it takes. */
+/* Fields are placed by the script, which needs them out of the flow to stack them tightly. */
 #fields {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 0 4px;
+    position: relative;
+    margin-bottom: 4px;
 }
 
 .field {
+    position: absolute;
     display: flex;
     flex-direction: column;
-    margin-bottom: 4px;
 }
 
 .fieldNotes {

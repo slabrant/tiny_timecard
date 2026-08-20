@@ -16,6 +16,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Can edit start, stop, and notes for each row
   - The notes field takes multiple lines, and grows to fit what is typed into it
 - Notes for the day sit in titled fields, laid out on a twelve column grid
+  - Fields stack tightly rather than lining up in rows, so a short field does not leave a gap under it. The next field that fits rises into it
   - The `Fields` setting is a comma separated list of `Title:columns` pairs, such as `Notes:12, Blockers:6, Wins:6`
   - A title on its own, such as `Notes`, takes the full twelve columns
   - The setting is shared by every day, so a field made once is on all of them, empty until something is typed in it
