@@ -45,7 +45,8 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - The cycle is set in the settings, as a comma separated list of minutes that alternates work and break, such as `45,5,40,5,35,5,30,30`
   - The cycle repeats from the start once its last period is done
   - Starting the list with a `0`, such as `0,5,45`, begins the cycle on a break instead of a work period
-  - The timer display counts down how many work sessions are left in the cycle, so a cycle that covers a whole day shows the work left in the day
+  - The timer display shows when the current period is up, and `EOD` for when the rest of the cycle after it is done, so a cycle that covers a whole day shows what time the day ends
+  - `EOD` is counted on from the current period rather than from the clock, so starting a period late carries the end of the day with it
   - Break rows are shaded in the entry list, so work and break periods can be told apart at a glance
 
 ## Ideas

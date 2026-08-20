@@ -464,9 +464,9 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const pomodoroTime = cycle.times[pomoCount];
     const pomodoroType = cycle.isBreakAt(pomoCount) ? "Break" : "Work";
 
-    // The cycle covers a whole day, so the work left in it is the work left today.
-    const sessionsLeft = cycle.times.reduce((count, time, index) => {
-        return (pomoCount < index && !cycle.isBreakAt(index)) ? count + 1 : count;
+    // The cycle covers a whole day, so what is left of it after this period is what is left of the day.
+    const minutesLeft = cycle.times.reduce((total, time, index) => {
+        return (pomoCount < index) ? total + time : total;
     }, 0);
 
     const nowMs = Date.now();
@@ -475,10 +475,9 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
     const delay = newDate - nowMs;
 
-    const sessionsNote = (0 === sessionsLeft) ?
-        "last session" :
-        sessionsLeft + " session" + ((1 === sessionsLeft) ? "" : "s") + " left";
-    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - " + sessionsNote;
+    // Counted on from this period rather than from the clock, so running late moves the end of the day with it.
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime + minutesLeft);
+    const message = pomodoroType + " until " + displayTimeFormat.format(newDate) + " - EOD " + displayTimeFormat.format(endOfDay);
 
     return [message, delay, pomodoroType];
 }
