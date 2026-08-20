@@ -60,7 +60,7 @@ input {
 }
 
 .settingField {
-    field-sizing: border-field;
+    box-sizing: border-box;
     border: 1px solid #b0b0b0;
     border-radius: 5px;
     font: 12pt sans-serif;
@@ -104,7 +104,7 @@ input {
 }
 
 .fieldNotes {
-    field-sizing: border-field;
+    box-sizing: border-box;
     width: 100%;
     resize: none;
 }
@@ -124,7 +124,7 @@ input {
 }
 
 textarea.notes {
-    field-sizing: border-field;
+    box-sizing: border-box;
     margin-right: 4px;
     resize: none;
     /* Only the family needs saying: a textarea already matches an input's size, but defaults to monospace. */
