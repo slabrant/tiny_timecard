@@ -5,6 +5,10 @@ document.getElementById('backDayButton').addEventListener('click', (e) => {
         updateDateByAmount(-1);
 });
 
+window.addEventListener('resize', (e) => {
+    sizeAllNotesFields();
+});
+
 document.getElementById('dateInput').addEventListener('change', (e) => {
     if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
         date = e.target.value;
@@ -224,8 +228,8 @@ const addNoteBox = ({title, columns}, text) => {
 
     let notesField = newBox.querySelector('.noteBoxNotes');
     notesField.value = text;
-    sizeNotesField(notesField);
     newBox.hidden = false;
+    sizeNotesField(notesField);
 
     notesField.addEventListener('input', (e) => {
         checkPageChanged();
@@ -244,8 +248,8 @@ const addRow = ({start = '', stop = '', notes = ''}) => {
     newRow.querySelector('.start').value = start;
     newRow.querySelector('.stop').value = stop;
     newRow.querySelector('.notes').value = notes;
-    sizeNotesField(newRow.querySelector('.notes'));
     newRow.hidden = false;
+    sizeNotesField(newRow.querySelector('.notes'));
 
     // Notes are a textarea, so the only inputs left in a row are the two times.
     Array.from(newRow.getElementsByTagName('input')).forEach(input => {
@@ -745,9 +749,25 @@ const setPomodoroTimer = (start, entryId) => {
     }
 };
 
-// A notes field grows to fit the lines typed into it, so nothing it holds is hidden.
+// A notes field grows to fit what it holds, so nothing in it is hidden.
 const sizeNotesField = (notesField) => {
-    notesField.rows = (notesField.value.match(/\n/g) || []).length + 1;
+    const style = getComputedStyle(notesField);
+    const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+
+    // Held at one row, so the field is as tall as a single line and the text below can be measured against it.
+    notesField.rows = 1;
+
+    const lineHeight = notesField.clientHeight - padding;
+    if (lineHeight <= 0)
+        return;
+
+    // Counted by the room the text takes rather than by its newlines, so a line that wraps counts every row it fills.
+    notesField.rows = Math.max(1, Math.round((notesField.scrollHeight - padding) / lineHeight));
+};
+
+// A change of width moves where lines wrap, which changes the room every field needs.
+const sizeAllNotesFields = () => {
+    document.querySelectorAll('#rows .notes, #noteBoxes .noteBoxNotes').forEach(sizeNotesField);
 };
 
 // The layout says which boxes are drawn, and the day says what goes in them.
