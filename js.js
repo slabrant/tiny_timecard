@@ -101,7 +101,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                     date = dateFormat.format(newDate);
                     newDays[date] = {
                         "entries": [],
-                        "notes": parseNoteFields(fields.slice(1)),
+                        "notes": parseFieldColumns(fields.slice(1)),
                     };
                 }
             }
@@ -174,21 +174,21 @@ document.getElementById('pomodoroTimesInput').addEventListener('keydown', (e) =>
         e.target.blur();
 });
 
-document.getElementById('noteBoxesInput').addEventListener('change', (e) => {
-    const boxes = parseNoteBoxes(e.target.value);
+document.getElementById('fieldsInput').addEventListener('change', (e) => {
+    const fields = parseFields(e.target.value);
 
-    if (boxes)
-        localStorage.setItem('noteBoxes', JSON.stringify(boxes));
+    if (fields)
+        localStorage.setItem('fields', JSON.stringify(fields));
 
-    // Unusable text is dropped, so the field always shows the boxes actually in effect.
+    // Unusable text is dropped, so the field always shows the fields actually in effect.
     showSettings();
 
     // The fields are redrawn around what is already typed, and nothing is saved that was not asked to be.
-    showNoteBoxes(getPageData().notes);
+    showFields(getPageData().notes);
     checkPageChanged();
 });
 
-document.getElementById('noteBoxesInput').addEventListener('keydown', (e) => {
+document.getElementById('fieldsInput').addEventListener('keydown', (e) => {
     if ('Enter' === e.key)
         e.target.blur();
 });
@@ -209,26 +209,26 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
     hour12: true,
 });
 
-// Notes sit in titled boxes laid out on a grid this many columns wide.
-const noteBoxColumns = 12;
-const defaultNoteBoxTitle = 'Notes';
+// Notes sit in titled fields laid out on a grid this many columns wide.
+const fieldColumns = 12;
+const defaultFieldTitle = 'Notes';
 
-const addNoteBox = ({title, columns}, text) => {
-    let boxTemplate = document.getElementById('noteBoxTemplate');
+const addField = ({title, columns}, text) => {
+    let fieldTemplate = document.getElementById('fieldTemplate');
 
-    let newBox = boxTemplate.cloneNode(true);
-    newBox.removeAttribute('id');
-    newBox.classList.add('noteBox');
-    // The title is what ties a box to the text it holds, on the page and in the CSV alike.
-    newBox.dataset.title = title;
-    newBox.style.gridColumn = 'span ' + columns;
-    document.getElementById('noteBoxes').appendChild(newBox);
+    let newField = fieldTemplate.cloneNode(true);
+    newField.removeAttribute('id');
+    newField.classList.add('field');
+    // The title is what ties a field to the text it holds, on the page and in the CSV alike.
+    newField.dataset.title = title;
+    newField.style.gridColumn = 'span ' + columns;
+    document.getElementById('fields').appendChild(newField);
 
-    newBox.querySelector('.noteBoxTitle').innerText = title + ':';
+    newField.querySelector('.fieldTitle').innerText = title + ':';
 
-    let notesField = newBox.querySelector('.noteBoxNotes');
+    let notesField = newField.querySelector('.fieldNotes');
     notesField.value = text;
-    newBox.hidden = false;
+    newField.hidden = false;
     sizeNotesField(notesField);
 
     notesField.addEventListener('input', (e) => {
@@ -304,7 +304,7 @@ const buildCsv = (days) => {
     let csv = '\uFEFF';
 
     for (let date in days) {
-        csv += csvRow([date].concat(buildNoteFields(days[date].notes)));
+        csv += csvRow([date].concat(buildFieldColumns(days[date].notes)));
         days[date].entries.forEach(entry => {
             csv += csvRow([entry.start, entry.stop, entry.notes]);
         });
@@ -314,13 +314,13 @@ const buildCsv = (days) => {
 };
 
 // Written back out as the field takes it, so the stored layout and the field agree.
-const buildNoteBoxesText = (boxes) => {
-    return boxes.map(box => box.title + ':' + box.columns).join(', ');
+const buildFieldsText = (fields) => {
+    return fields.map(field => field.title + ':' + field.columns).join(', ');
 };
 
-// Every box in the layout gets a column so the days line up, and text a day holds outside the layout follows on.
-const buildNoteFields = (notes) => {
-    let titles = getNoteBoxes().map(box => box.title);
+// Every field in the layout gets a column so the days line up, and text a day holds outside the layout follows on.
+const buildFieldColumns = (notes) => {
+    let titles = getFields().map(field => field.title);
 
     Object.keys(notes).forEach(title => {
         if (!titles.includes(title))
@@ -406,21 +406,21 @@ const getEntryMinutes = (rowElement) => {
     return (0 < minutes) ? minutes : 0;
 };
 
-const getNoteBoxElements = () => {
-    return Array.from(document.getElementById('noteBoxes').children);
+const getFieldElements = () => {
+    return Array.from(document.getElementById('fields').children);
 };
 
-// The layout is one setting shared by every day, so a box made once is there on all of them.
-const getNoteBoxes = () => {
-    const storedBoxes = JSON.parse(localStorage.getItem('noteBoxes'));
+// The layout is one setting shared by every day, so a field made once is there on all of them.
+const getFields = () => {
+    const storedFields = JSON.parse(localStorage.getItem('fields'));
 
-    if (Array.isArray(storedBoxes)) {
-        const boxes = parseNoteBoxes(buildNoteBoxesText(storedBoxes));
-        if (boxes)
-            return boxes;
+    if (Array.isArray(storedFields)) {
+        const fields = parseFields(buildFieldsText(storedFields));
+        if (fields)
+            return fields;
     }
 
-    return [{title: defaultNoteBoxTitle, columns: noteBoxColumns}];
+    return [{title: defaultFieldTitle, columns: fieldColumns}];
 };
 
 const getPageData = () => {
@@ -432,10 +432,10 @@ const getPageData = () => {
         };
     });
 
-    // A box dropped from the layout is off screen but still held, so editing the layout loses no text.
+    // Seeded from the day so text is never read off the page alone, then the fields say what it is now.
     let newNotes = getDay(date).notes;
-    getNoteBoxElements().forEach(boxElement => {
-        newNotes[boxElement.dataset.title] = boxElement.querySelector('.noteBoxNotes').value;
+    getFieldElements().forEach(fieldElement => {
+        newNotes[fieldElement.dataset.title] = fieldElement.querySelector('.fieldNotes').value;
     });
 
     return {
@@ -528,11 +528,11 @@ const normalizeEntry = ({start = '', stop = '', notes = ''}) => {
     };
 };
 
-// Notes are held by box title. Empty boxes are dropped and the titles are ordered, so two days compare as written.
+// Notes are held by field title. Empty fields are dropped and the titles are ordered, so two days compare as written.
 const normalizeNotes = (notes) => {
-    // Before there were boxes a day's notes were one piece of text, which belongs in the default box.
+    // Before there were fields a day's notes were one piece of text, which belongs in the default field.
     if (typeof notes === 'string')
-        notes = {[defaultNoteBoxTitle]: notes};
+        notes = {[defaultFieldTitle]: notes};
 
     let normalized = {};
     Object.keys(notes || {}).sort().forEach(title => {
@@ -594,8 +594,8 @@ const parseCsv = (text) => {
 };
 
 // Reads a comma separated list of title:columns pairs, and returns null if it is not usable as a layout.
-const parseNoteBoxes = (text) => {
-    let boxes = [];
+const parseFields = (text) => {
+    let fields = [];
 
     for (const piece of text.split(',')) {
         if ('' === piece.trim())
@@ -606,32 +606,32 @@ const parseNoteBoxes = (text) => {
             return null;
 
         const title = pieces[0].trim();
-        // A box takes the full width unless it says otherwise.
-        const columns = (pieces.length < 2 || '' === pieces[1].trim()) ? noteBoxColumns : Number(pieces[1]);
+        // A field takes the full width unless it says otherwise.
+        const columns = (pieces.length < 2 || '' === pieces[1].trim()) ? fieldColumns : Number(pieces[1]);
 
-        // Two boxes with one title would be one box holding one piece of text, so the title has to be its own.
-        if ('' === title || boxes.some(box => box.title === title))
+        // Two fields with one title would be one field holding one piece of text, so the title has to be its own.
+        if ('' === title || fields.some(field => field.title === title))
             return null;
-        if (!Number.isInteger(columns) || columns < 1 || noteBoxColumns < columns)
+        if (!Number.isInteger(columns) || columns < 1 || fieldColumns < columns)
             return null;
 
-        boxes.push({title: title, columns: columns});
+        fields.push({title: title, columns: columns});
     }
 
-    return (0 < boxes.length) ? boxes : null;
+    return (0 < fields.length) ? fields : null;
 };
 
 // Reads the "Title: text" columns that follow a date in the CSV.
-const parseNoteFields = (fields) => {
+const parseFieldColumns = (fields) => {
     let notes = {};
 
     fields.forEach(field => {
         const colon = field.indexOf(':');
         const title = (0 < colon) ? field.slice(0, colon) : '';
 
-        // Notes written before the boxes existed carry no title, so they land in the default box.
+        // Notes written before the fields existed carry no title, so they land in the default field.
         if ('' === title.trim() || title.includes('\n'))
-            notes[defaultNoteBoxTitle] = field;
+            notes[defaultFieldTitle] = field;
         else
             notes[title.trim()] = field.slice(colon + 1).replace(/^ /, '');
     });
@@ -664,6 +664,17 @@ const resetPomodoroTimer = () => {
     }
 };
 
+// A field the setting does not name is only on the page to hold text, so a save is when an empty one goes.
+// Taken away one at a time rather than by redrawing them all, so saving does not move the cursor out of a field.
+const removeEmptyFields = () => {
+    const titles = getFields().map(field => field.title);
+
+    getFieldElements().forEach(fieldElement => {
+        if (!titles.includes(fieldElement.dataset.title) && '' === fieldElement.querySelector('.fieldNotes').value)
+            fieldElement.remove();
+    });
+};
+
 const restartPomodoroTimer = () => {
     const entries = getPageData().entries;
     setPomodoroTimer(entries[entries.length - 1]?.start, entries.length - 1);
@@ -685,6 +696,7 @@ const saveDay = (day, date) => {
     days[date] = day;
 
     localStorage.setItem('days', JSON.stringify(days));
+    removeEmptyFields();
     checkPageChanged();
 };
 
@@ -697,7 +709,7 @@ const setPageData = (date) => {
     sessionStorage.setItem('date', date);
     let day = getDay(date);
     document.getElementById('rows').innerHTML = '';
-    showNoteBoxes(day.notes);
+    showFields(day.notes);
 
     day.entries.forEach((entry) => {
         addRow(entry);
@@ -767,29 +779,29 @@ const sizeNotesField = (notesField) => {
 
 // A change of width moves where lines wrap, which changes the room every field needs.
 const sizeAllNotesFields = () => {
-    document.querySelectorAll('#rows .notes, #noteBoxes .noteBoxNotes').forEach(sizeNotesField);
+    document.querySelectorAll('#rows .notes, #fields .fieldNotes').forEach(sizeNotesField);
 };
 
 // Every field shows the setting actually in effect, so unusable text typed into one leaves no trace.
 const showSettings = () => {
     document.getElementById('pomodoroTimesInput').value = getPomodoroTimes().join(',');
-    document.getElementById('noteBoxesInput').value = buildNoteBoxesText(getNoteBoxes());
+    document.getElementById('fieldsInput').value = buildFieldsText(getFields());
 };
 
 // The layout says which fields are drawn, and the day says what goes in them.
-const showNoteBoxes = (notes) => {
-    let boxes = getNoteBoxes();
+const showFields = (notes) => {
+    let fields = getFields();
 
     // Text the layout has no field for is drawn all the same, so a day's text is always somewhere it can be seen and saved.
     Object.keys(notes).forEach(title => {
-        if (!boxes.some(box => box.title === title))
-            boxes.push({title: title, columns: noteBoxColumns});
+        if (!fields.some(field => field.title === title))
+            fields.push({title: title, columns: fieldColumns});
     });
 
-    document.getElementById('noteBoxes').innerHTML = '';
+    document.getElementById('fields').innerHTML = '';
 
-    boxes.forEach(box => {
-        addNoteBox(box, notes[box.title] || '');
+    fields.forEach(field => {
+        addField(field, notes[field.title] || '');
     });
 };
 
@@ -822,6 +834,12 @@ const updateDayTotal = () => {
     document.getElementById('workedTotal').innerText = formatMinutes(totals.workedMinutes);
     document.getElementById('breakTotal').innerText = formatMinutes(totals.breakMinutes);
 };
+
+// The fields setting was stored under noteBoxes before it was called fields, so an older one is carried over.
+if (null === localStorage.getItem('fields') && null !== localStorage.getItem('noteBoxes')) {
+    localStorage.setItem('fields', localStorage.getItem('noteBoxes'));
+    localStorage.removeItem('noteBoxes');
+}
 
 let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
 let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;

@@ -60,7 +60,7 @@ input {
 }
 
 .settingField {
-    box-sizing: border-box;
+    field-sizing: border-field;
     border: 1px solid #b0b0b0;
     border-radius: 5px;
     font: 12pt sans-serif;
@@ -89,21 +89,21 @@ input {
     flex: 1 1 0;
 }
 
-/* Boxes are laid out on a twelve column grid, and each one says how many of them it takes. */
-#noteBoxes {
+/* Fields are laid out on a twelve column grid, and each one says how many of them it takes. */
+#fields {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 0 4px;
 }
 
-.noteBox {
+.field {
     display: flex;
     flex-direction: column;
     margin-bottom: 4px;
 }
 
-.noteBoxNotes {
-    box-sizing: border-box;
+.fieldNotes {
+    field-sizing: border-field;
     width: 100%;
     resize: none;
 }
@@ -123,7 +123,7 @@ input {
 }
 
 textarea.notes {
-    box-sizing: border-box;
+    field-sizing: border-field;
     margin-right: 4px;
     resize: none;
     /* Only the family needs saying: a textarea already matches an input's size, but defaults to monospace. */

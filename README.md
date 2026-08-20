@@ -21,6 +21,7 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - The setting is shared by every day, so a field made once is on all of them, empty until something is typed in it
   - A field holding text is on the page whether the setting names it or not, so changing the setting never puts text out of reach
   - A field the setting drops therefore goes only once it is empty, and renaming one leaves the old title on the page with its text
+  - Emptying such a field takes it off the page on the next save, which is when it is empty for good
   - Nothing is written by changing the setting: text that has not been saved is still unsaved, and saving is what keeps it
 - Can export CSV of time, including day notes
   - The columns after the date hold the day's notes, one field each, written as `Title: text`

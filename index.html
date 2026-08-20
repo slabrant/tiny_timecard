@@ -28,7 +28,7 @@
             </label>
             <label class="setting">
                 <span class="settingTitle">Fields:</span>
-                <input id="noteBoxesInput" class="settingField" type="text" title="Field titles and how many of twelve columns each takes, such as Notes:12, Blockers:6">
+                <input id="fieldsInput" class="settingField" type="text" title="Field titles and how many of twelve columns each takes, such as Notes:12, Blockers:6">
             </label>
         </div>
         <hr>
@@ -36,11 +36,11 @@
         <div class="dayTotal" title="Worked / Break">
             <span id="workedTotal"></span> / <span id="breakTotal" class="breakTotal"></span>
         </div>
-        <div id="noteBoxes"></div>
+        <div id="fields"></div>
         <div id="pomodoroDisplay" class="pomodoroDisplay" hidden>Click to activate pomodoro timer.</div>
-        <label id="noteBoxTemplate" hidden>
-            <span class="noteBoxTitle"></span>
-            <textarea class="noteBoxNotes" rows="1"></textarea>
+        <label id="fieldTemplate" hidden>
+            <span class="fieldTitle"></span>
+            <textarea class="fieldNotes" rows="1"></textarea>
         </label>
         <div id="rowTemplate" hidden>
             <input class="start time flex_thin" type="time" title="Start Time">
