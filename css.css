@@ -133,6 +133,8 @@ body {
     grid-template-columns: repeat(12, 1fr);
     gap: 8px 4px;
     margin-bottom: 8px;
+    /* A row is as tall as what is written in it: the half of the page it does not need is left empty rather than shared out. */
+    align-content: start;
 }
 
 .field {
