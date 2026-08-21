@@ -9,6 +9,17 @@ window.addEventListener('resize', (e) => {
     sizeAllNotesFields();
 });
 
+// Refreshing or closing the page loses what has not been saved, the same as changing the day does, so it is asked about too.
+window.addEventListener('beforeunload', (e) => {
+    if (checkPageChanged())
+        return;
+
+    // The browser writes the asking itself, and only asks at all if the event is turned down.
+    e.preventDefault();
+    // Older browsers ask on the value rather than on the event being turned down.
+    e.returnValue = true;
+});
+
 document.getElementById('dateInput').addEventListener('change', (e) => {
     if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
         date = e.target.value;
