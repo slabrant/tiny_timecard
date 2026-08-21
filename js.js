@@ -240,7 +240,7 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
 });
 
 // The browser writes its own asking before a refresh, and will not be told what to say, so the asking done here is worded to match it.
-const unsavedDataMessage = 'Changes you made may not be saved. Would you like to continue?';
+const unsavedDataMessage = 'Changes you made may not be saved.';
 
 // A day's work is done once this much of it has been worked, until it is set to something else.
 const defaultGoalMinutes = 8 * 60;
