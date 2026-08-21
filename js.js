@@ -94,7 +94,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
                 return;
 
             // A row starting with a date begins a new day, and may carry that day's notes.
-            if (/^\d{4}-\d{2}-\d{2}$/.test(fields[0])) {
+            if (checkDate(fields[0])) {
                 const datePieces = fields[0].split('-');
                 const newDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2]);
                 if (!isNaN(newDate)) {
@@ -121,7 +121,10 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
 
         let areRowsEqual = checkDaysEqual(newDays, getDays());
 
-        if (areRowsEqual)
+        // A file the timecard can read no day out of would put nothing in the place of everything.
+        if (0 === Object.keys(newDays).length)
+            alert('There are no days to upload in that file.');
+        else if (areRowsEqual)
             alert('There is no new data to upload.');
         else if (confirm("This will overwrite your data. Recovery is not possible. Would you like to continue?"))
             saveDays(newDays);
@@ -349,6 +352,11 @@ const buildFieldColumns = (notes) => {
     return titles.map(title => title + ': ' + (notes[title] || ''));
 };
 
+// Days are held by date, so text that is not one is not a day of the timecard.
+const checkDate = (text) => {
+    return /^\d{4}-\d{2}-\d{2}$/.test(text);
+};
+
 const checkDayEqual = (day1, day2) => {
     return (JSON.stringify(day1.entries) === JSON.stringify(day2.entries)) && (JSON.stringify(day1.notes) === JSON.stringify(day2.notes))
 };
@@ -402,11 +410,16 @@ const getDayTotals = () => {
     }, {workedMinutes: 0, breakMinutes: 0});
 };
 
+// A day is what is held under a date, so anything else stored alongside them is not one and is passed over.
 const getDays = () => {
-    let days = JSON.parse(localStorage.getItem('days')) || {};
+    const storedDays = readStored('days');
+    let days = {};
 
-    for (let date in days) {
-        days[date] = normalizeDay(days[date]);
+    if (storedDays instanceof Object) {
+        Object.keys(storedDays).forEach(date => {
+            if (checkDate(date))
+                days[date] = normalizeDay(storedDays[date]);
+        });
     }
 
     return days;
@@ -438,14 +451,14 @@ const getEndOfDay = () => {
 };
 
 const getGoalMinutes = () => {
-    const storedGoal = JSON.parse(localStorage.getItem('goal'));
+    const storedGoal = readStored('goal');
 
     return (Number.isInteger(storedGoal) && 0 < storedGoal) ? storedGoal : defaultGoalMinutes;
 };
 
 // The layout is one setting shared by every day, so a field made once is there on all of them.
 const getFields = () => {
-    const storedFields = JSON.parse(localStorage.getItem('fields'));
+    const storedFields = readStored('fields');
 
     if (Array.isArray(storedFields)) {
         const fields = parseFields(buildFieldsText(storedFields));
@@ -513,7 +526,7 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
 }
 
 const getPomodoroTimes = () => {
-    const storedTimes = JSON.parse(localStorage.getItem('pomodoroTimes'));
+    const storedTimes = readStored('pomodoroTimes');
 
     if (Array.isArray(storedTimes) && parsePomodoroTimes(storedTimes.join(',')))
         return storedTimes;
@@ -564,17 +577,22 @@ const markBreakRows = () => {
 };
 
 const normalizeDay = (day) => {
+    const entries = day?.entries;
+
     return {
-        "entries": (day?.entries || []).map(normalizeEntry),
+        "entries": (Array.isArray(entries) ? entries : []).map(normalizeEntry),
         "notes": normalizeNotes(day?.notes),
     };
 };
 
-const normalizeEntry = ({start = '', stop = '', notes = ''}) => {
+// An entry is a start, a stop, and some text, so whatever is written in one is read as those or as nothing.
+const normalizeEntry = (entry) => {
+    const {start = '', stop = '', notes = ''} = (entry instanceof Object) ? entry : {};
+
     return {
-        start: start,
-        stop: stop,
-        notes: notes,
+        start: normalizeTime(start),
+        stop: normalizeTime(stop),
+        notes: normalizeText(notes),
     };
 };
 
@@ -584,14 +602,36 @@ const normalizeNotes = (notes) => {
     if (typeof notes === 'string')
         notes = {[defaultFieldTitle]: notes};
 
+    // A list has no titles to hold text by, so it is no more notes than a number is.
+    if (!(notes instanceof Object) || Array.isArray(notes))
+        notes = {};
+
     let normalized = {};
-    Object.keys(notes || {}).sort().forEach(title => {
-        const text = String(notes[title] || '');
-        if ('' !== text)
+    Object.keys(notes).sort().forEach(title => {
+        const text = normalizeText(notes[title]);
+        if ('' !== title.trim() && '' !== text)
             normalized[title] = text;
     });
 
     return normalized;
+};
+
+// A notes field shows text, so anything written where text should be is shown as nothing rather than as itself.
+const normalizeText = (text) => {
+    return ('string' === typeof text || 'number' === typeof text) ? String(text) : '';
+};
+
+// The time fields hold hours and minutes, so a time is read back into the shape they hold it in, and anything else is left empty.
+const normalizeTime = (time) => {
+    const pieces = String(time).trim().split(':');
+    const limits = [23, 59, 59];
+
+    if (pieces.length < 2 || limits.length < pieces.length)
+        return '';
+    if (pieces.some((piece, index) => !/^\d{1,2}$/.test(piece) || limits[index] < +piece))
+        return '';
+
+    return pieces.map(piece => piece.padStart(2, '0')).join(':');
 };
 
 // Splits CSV text into rows of fields, keeping commas, quotes, and newlines that sit inside quoted fields.
@@ -724,6 +764,16 @@ const parsePomodoroTimes = (text) => {
         return null;
 
     return times;
+};
+
+// What is stored is only as good as what was last written into it, so text that will not read back is taken as nothing at all.
+const readStored = (key) => {
+    try {
+        return JSON.parse(localStorage.getItem(key));
+    }
+    catch (error) {
+        return null;
+    }
 };
 
 // The end of the day is read off the clock, so the display is written again as the clock moves under it.
@@ -937,8 +987,9 @@ if (null === localStorage.getItem('fields') && null !== localStorage.getItem('no
     localStorage.removeItem('noteBoxes');
 }
 
-let date = sessionStorage.getItem('date') || dateFormat.format(new Date);
-let pomodoroOn = JSON.parse(localStorage.getItem('pomodoroOn')) || false;
+const storedDate = sessionStorage.getItem('date');
+let date = checkDate(storedDate) ? storedDate : dateFormat.format(new Date);
+let pomodoroOn = (true === readStored('pomodoroOn'));
 let pomodoroTimeout;
 let pomodoroStart;
 let pomodoroEntryId;

@@ -43,6 +43,11 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - The entries and the fields each take half the page and scroll on their own, so neither pushes the other off screen
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
+- Stored data that cannot be read is passed over, so the timecard always opens on what is left
+  - A setting that will not read back falls through to its default, the same as unusable text typed into it does
+  - A time that is not one is left empty, and text held under no title is dropped, so nothing malformed is shown as if it were data
+  - What is dropped goes from storage on the next save, which is when the page is what the day holds
+  - A CSV with no days in it is not uploaded, so a file picked by mistake cannot take the place of the data already there
 - The `...` button opens the settings, which hold the pomodoro cycle and the notes box layout
   - The button puts them away again, so they are only on screen while a setting is being changed
   - A setting takes effect as soon as its field is left or `Enter` is pressed, and unusable text is dropped
