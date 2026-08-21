@@ -150,7 +150,7 @@ document.getElementById('uploadButton').addEventListener('change', (e) => {
 document.getElementById('pomodoroInput').addEventListener('click', (e) => {
     pomodoroOn = e.target.checked;
     localStorage.setItem('pomodoroOn', pomodoroOn);
-    document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+    showPomodoroDisplay();
     markBreakRows();
     updateDayTotal();
     resetPomodoroTimer();
@@ -950,6 +950,12 @@ const showFields = (notes) => {
     });
 };
 
+// The display floats over the bottom corner of the page, so the fields are kept clear of it while it is there.
+const showPomodoroDisplay = () => {
+    document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+    document.getElementById('fields').classList.toggle('clearOfTimer', pomodoroOn);
+};
+
 // The end of the day is a lighter aside to the period in hand, so it is written as its own piece.
 const showPomodoroMessage = (message, endOfDayNote) => {
     const display = document.getElementById('pomodoroDisplay');
@@ -1008,7 +1014,7 @@ let pomodoroEntryId;
 // The end of the day is worked out from the clock, so it is worked out again once a minute.
 setInterval(refreshPomodoroDisplay, 60000);
 document.getElementById('pomodoroInput').checked = pomodoroOn;
-document.getElementById('pomodoroDisplay').hidden = !pomodoroOn;
+showPomodoroDisplay();
 
 showSettings();
 

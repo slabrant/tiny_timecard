@@ -42,8 +42,10 @@ The time data can be exported and analyzed in a third party system, such as a sp
 - Shows a day total under the entries: time worked, then time on break in gray after a slash
   - A period is counted once both its start and stop are filled, so the period in progress joins the total when it is closed
   - Break periods are the ones marked by the pomodoro cycle, so with the timer off the whole day counts as worked
-- The entries and the fields each take half the page and scroll on their own, so neither pushes the other off screen
-  - A field is as tall as what is written in it, so the room the fields do not need is left empty rather than shared out between them
+- The fields take only the room they are written in, up to half the page, and the entries take the rest
+  - A field is as tall as what is written in it, so the fields are as tall as the writing in them and no taller
+  - Each scrolls on its own once it holds more than its room, so neither pushes the other off screen
+  - With the timer on, the fields stop short of the corner it sits in, rather than running under it
 - Can change date and will show entries for that day
 - Saves all data to `localStorage`, so cannot be used across devices
 - Stored data that cannot be read is passed over, so the timecard always opens on what is left

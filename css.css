@@ -75,11 +75,28 @@ body {
     flex: 0 0 auto;
 }
 
-/* A share each by what is in them, and each scrolls on its own, so neither can push the other off the page. */
+/* Each scrolls on its own, so neither can push the other off the page. */
 #rows, #fields {
-    flex: 1 1 auto;
     overflow-y: auto;
+}
+
+/* The entries take the room the fields leave, whatever is written in them, so a long day scrolls rather than pushing the fields down. */
+#rows {
+    flex: 1 1 0;
     min-height: 4em;
+}
+
+/* The fields take only the room they are written in, and half the page at the most, so the rest is the entries'. */
+#fields {
+    /* So the half of the page it is held to is the whole of it, room kept for the timer included. */
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    max-height: 50%;
+}
+
+/* The timer floats over the bottom corner, so the last field leaves it room rather than running under it. */
+#fields.clearOfTimer {
+    padding-bottom: 2.5em;
 }
 
 .setting {
