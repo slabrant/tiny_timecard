@@ -1,7 +1,7 @@
 'use strict';
 
 document.getElementById('backDayButton').addEventListener('click', (e) => {
-    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+    if (checkPageChanged() || confirm(unsavedDataMessage))
         updateDateByAmount(-1);
 });
 
@@ -21,7 +21,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 document.getElementById('dateInput').addEventListener('change', (e) => {
-    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?")) {
+    if (checkPageChanged() || confirm(unsavedDataMessage)) {
         date = e.target.value;
         setPageData(date);
         checkPageChanged();
@@ -32,7 +32,7 @@ document.getElementById('dateInput').addEventListener('change', (e) => {
 });
 
 document.getElementById('nextDayButton').addEventListener('click', (e) => {
-    if (checkPageChanged() || confirm("You have unsaved data that will be lost. Would you like to continue?"))
+    if (checkPageChanged() || confirm(unsavedDataMessage))
         updateDateByAmount(1);
 });
 
@@ -238,6 +238,9 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
     minute: '2-digit',
     hour12: true,
 });
+
+// The browser writes its own asking before a refresh, and will not be told what to say, so the asking done here is worded to match it.
+const unsavedDataMessage = 'Changes you made may not be saved. Would you like to continue?';
 
 // A day's work is done once this much of it has been worked, until it is set to something else.
 const defaultGoalMinutes = 8 * 60;

@@ -33,7 +33,8 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - insert the previous stop time as the start time of the new entry
 - Ctrl + S will save the data to local storage and will not allow downloading the page as normal
 - Leaving the page with unsaved data is asked about first, by refreshing or closing it as much as by changing the day
-  - The asking is the browser's own, so the wording of it is the browser's too
+  - Refreshing and closing are asked about by the browser, in words of its own that a page cannot set
+  - Changing the day is asked about by the timecard, in the same words, so the two read alike
 - The `Goal` setting is how much worked time makes a day, as hours and minutes, such as `8:00`
   - The gray time on the timer display is when the goal will be met, worked out from the goal and the work done so far, so it says nothing about the pomodoro cycle
   - Only worked time counts towards it, so taking a break carries the end of the day out with it, and working holds it still
