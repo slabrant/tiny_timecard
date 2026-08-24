@@ -9,6 +9,16 @@ window.addEventListener('resize', (e) => {
     sizeAllNotesFields();
 });
 
+// A tab left open outlives the day it was opened on, so coming back to it is where the day it is on catches up.
+window.addEventListener('focus', (e) => {
+    updateToCurrentDay();
+});
+
+document.addEventListener('visibilitychange', (e) => {
+    if (!document.hidden)
+        updateToCurrentDay();
+});
+
 // Refreshing or closing the page loses what has not been saved, the same as changing the day does, so it is asked about too.
 window.addEventListener('beforeunload', (e) => {
     if (checkPageChanged())
@@ -559,6 +569,20 @@ const getRowIndex = (rowElement) => {
     return getRowElements().indexOf(rowElement);
 };
 
+// The tab keeps the day it is on, so a reload comes back to the day being looked at rather than to the current one.
+// A session outlives the day it began in, though -- a tab sits open, and a browser brings its sessions back with it --
+// so the day the tab was put on that date is kept beside it. Once the calendar has moved past that day, the date in
+// the session is a day gone by that nobody chose today, and the tab comes up on the current day instead.
+const getSessionDate = () => {
+    const storedDate = sessionStorage.getItem('date');
+    const today = dateFormat.format(new Date);
+
+    if (checkDate(storedDate) && today === sessionStorage.getItem('dateSetOn'))
+        return storedDate;
+
+    return today;
+};
+
 // What the day total holds, plus the period in progress, which is being worked whether or not it has been stopped yet.
 const getWorkedMinutes = () => {
     const rowElements = getRowElements();
@@ -850,6 +874,8 @@ const saveDays = (days) => {
 
 const setPageData = (date) => {
     sessionStorage.setItem('date', date);
+    // Kept so a tab that outlives the day can tell a date chosen today from one it has simply been sitting on.
+    sessionStorage.setItem('dateSetOn', dateFormat.format(new Date));
     let day = getDay(date);
     document.getElementById('rows').innerHTML = '';
     showFields(day.notes);
@@ -985,13 +1011,32 @@ const showNotification = (message) => {
     }
 }
 
-const updateDateByAmount = (amount) => {
-    let datePieces = date.split('-');
-    let changedDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2] + +amount);
-    date = dateFormat.format(changedDate);
+const updateDate = (newDate) => {
+    date = newDate;
     document.getElementById('dateInput').value = date;
     setPageData(date);
     checkPageChanged();
+};
+
+const updateDateByAmount = (amount) => {
+    let datePieces = date.split('-');
+    let changedDate = new Date(datePieces[0], datePieces[1] - 1, +datePieces[2] + +amount);
+    updateDate(dateFormat.format(changedDate));
+};
+
+// A tab left open is put on the current day when the day has turned since it was last used, as opening it fresh would
+// be. A day chosen today is left alone, however long the tab is then away for, so looking back at a past day and
+// coming back to the tab keeps it there. Work that has not been saved is left where it is rather than asked about
+// unprompted, and the day catches up on the next return after it is saved.
+const updateToCurrentDay = () => {
+    const today = dateFormat.format(new Date);
+
+    if (today === date || today === sessionStorage.getItem('dateSetOn'))
+        return;
+    if (!checkPageChanged())
+        return;
+
+    updateDate(today);
 };
 
 const updateDayTotal = () => {
@@ -1007,8 +1052,7 @@ if (null === localStorage.getItem('fields') && null !== localStorage.getItem('no
     localStorage.removeItem('noteBoxes');
 }
 
-const storedDate = sessionStorage.getItem('date');
-let date = checkDate(storedDate) ? storedDate : dateFormat.format(new Date);
+let date = getSessionDate();
 let pomodoroOn = (true === readStored('pomodoroOn'));
 let pomodoroTimeout;
 let pomodoroStart;

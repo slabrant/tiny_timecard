@@ -48,6 +48,11 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - Each scrolls on its own once it holds more than its room, so neither pushes the other off screen
   - With the timer on, the fields stop short of the corner it sits in, rather than running under it
 - Can change date and will show entries for that day
+- Opens on the current day, and comes back to it once the day has turned
+  - A day picked by hand is kept through a reload, so looking back at a past day stays there
+  - A session outlives the day it began in, since a tab sits open and a browser brings its sessions back, so a tab holding a day nobody picked today is put on the current day
+  - A tab left open through a day turn is put on the current day when it is come back to, as opening it fresh would be
+  - Unsaved work holds the tab on the day the work was written on, and the day catches up on the next return after it is saved
 - Saves all data to `localStorage`, so cannot be used across devices
 - Stored data that cannot be read is passed over, so the timecard always opens on what is left
   - A setting that will not read back falls through to its default, the same as unusable text typed into it does

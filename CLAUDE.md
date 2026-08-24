@@ -15,7 +15,9 @@ no third-party libraries, no package manager. Opening `index.html` is running it
   changed.
 - All data lives in `localStorage` under `days`, plus the `fields`, `goal`,
   `pomodoroTimes`, and `pomodoroOn` settings. `sessionStorage` holds the date the
-  tab is on.
+  tab is on, under `date`, and the day it was put on that date, under `dateSetOn`.
+  A session outlives the day it began in, so the two together are what says whether
+  the tab is on a day someone chose or one it has merely been left on.
 - Stored data is read for what is usable in it and never trusted to be
   well formed. A day that cannot be read is passed over rather than thrown on.
 
