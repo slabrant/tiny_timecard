@@ -52,7 +52,12 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - A day picked by hand is kept through a reload, so looking back at a past day stays there
   - A session outlives the day it began in, since a tab sits open and a browser brings its sessions back, so a tab holding a day nobody picked today is put on the current day
   - A tab left open through a day turn is put on the current day when it is come back to, as opening it fresh would be
-  - Unsaved work holds the tab on the day the work was written on, and the day catches up on the next return after it is saved
+  - The day is read off the clock once a minute, so a tab that is never touched -- on a second screen, or simply never clicked into -- comes up to the current day by itself
+  - Unsaved work holds the tab on the day the work was written on, and the day catches up once it is saved
+  - The current day is written in gray beside the date whenever the page is on another day, whether it is held there or a past day is being looked at on purpose
+- Saving writes the day whole, from the page, so a save that would write over a change made somewhere else is asked about first
+  - Another tab open on the same day is what makes that happen: it saves the day as it read it, which would take the work done since with it
+  - Taking the asking up writes the page over the day as before, and turning it down leaves both the stored day and the page as they are
 - Saves all data to `localStorage`, so cannot be used across devices
 - Stored data that cannot be read is passed over, so the timecard always opens on what is left
   - A setting that will not read back falls through to its default, the same as unusable text typed into it does
