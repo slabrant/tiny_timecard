@@ -252,6 +252,9 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
 // The browser writes its own asking before a refresh, and will not be told what to say, so the asking done here is worded to match it.
 const unsavedDataMessage = 'Changes you made may not be saved.';
 
+// A day written elsewhere is only found when a save is about to go over it, so that is where it is asked about.
+const dayChangedMessage = 'This day was changed somewhere else since it was opened here. Saving will write over that change. Would you like to continue?';
+
 // A day's work is done once this much of it has been worked, until it is set to something else.
 const defaultGoalMinutes = 8 * 60;
 
@@ -383,6 +386,13 @@ const checkDate = (text) => {
 
 const checkDayEqual = (day1, day2) => {
     return (JSON.stringify(day1.entries) === JSON.stringify(day2.entries)) && (JSON.stringify(day1.notes) === JSON.stringify(day2.notes))
+};
+
+// A save writes the day whole, from the page, so anything held under that date that the page never read goes with it. Another
+// tab left open on the same day is enough: it saves the day as it read it, and the work done since is gone without a word. So a
+// save that would take something with it asks first.
+const checkDayOverwrite = (date) => {
+    return checkDayEqual(getDay(date), loadedDay) || confirm(dayChangedMessage);
 };
 
 const checkDaysEqual = (days1, days2) => {
@@ -848,6 +858,9 @@ const restartPomodoroTimer = () => {
 };
 
 const saveEntries = (entries, date) => {
+    if (!checkDayOverwrite(date))
+        return;
+
     let days = getDays();
     if (!days[date])
         days[date] = normalizeDay();
@@ -855,14 +868,20 @@ const saveEntries = (entries, date) => {
     days[date].entries = entries;
 
     localStorage.setItem('days', JSON.stringify(days));
+    // The day as it now stands is the day the page has read, so a later save is measured against this one.
+    loadedDay = getDay(date);
     checkPageChanged();
 };
 
 const saveDay = (day, date) => {
+    if (!checkDayOverwrite(date))
+        return;
+
     let days = getDays();
     days[date] = day;
 
     localStorage.setItem('days', JSON.stringify(days));
+    loadedDay = getDay(date);
     removeEmptyFields();
     checkPageChanged();
 };
@@ -877,6 +896,8 @@ const setPageData = (date) => {
     // Kept so a tab that outlives the day can tell a date chosen today from one it has simply been sitting on.
     sessionStorage.setItem('dateSetOn', dateFormat.format(new Date));
     let day = getDay(date);
+    // Kept as read, so a save can tell what the page has seen of this day from what has been written to it since.
+    loadedDay = day;
     document.getElementById('rows').innerHTML = '';
     showFields(day.notes);
 
@@ -1067,6 +1088,8 @@ if (null === localStorage.getItem('fields') && null !== localStorage.getItem('no
 }
 
 let date = getSessionDate();
+// The day as the page last read it, which is what a save writes over. Nothing has been read until the page is drawn.
+let loadedDay = normalizeDay();
 let pomodoroOn = (true === readStored('pomodoroOn'));
 let pomodoroTimeout;
 let pomodoroStart;
