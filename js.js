@@ -886,6 +886,7 @@ const setPageData = (date) => {
 
     markBreakRows();
     updateDayTotal();
+    showDayNote();
 
     let pomoDisp = document.getElementById('pomodoroDisplay');
     let newPomoDisp = pomoDisp.cloneNode(true);
@@ -962,6 +963,16 @@ const showSettings = () => {
     document.getElementById('fieldsInput').value = buildFieldsText(getFields());
 };
 
+// The date field says which day the page is on, and nothing on the page says which day it is, so a page sitting on a day gone
+// by reads as the current one. The current day is therefore written beside the date whenever the page is on another day.
+const showDayNote = () => {
+    const today = dateFormat.format(new Date);
+    const dayNote = document.getElementById('dayNote');
+
+    dayNote.innerText = 'It is now ' + today + '.';
+    dayNote.hidden = (date === today);
+};
+
 // The layout says which fields are drawn, and the day says what goes in them.
 const showFields = (notes) => {
     let fields = getFields();
@@ -1031,6 +1042,9 @@ const updateDateByAmount = (amount) => {
 const updateToCurrentDay = () => {
     const today = dateFormat.format(new Date);
 
+    // Said whether or not the day can be caught up with, since a page held on a day gone by is the one that most needs saying.
+    showDayNote();
+
     if (today === date || today === sessionStorage.getItem('dateSetOn'))
         return;
     if (!checkPageChanged())
@@ -1058,8 +1072,13 @@ let pomodoroTimeout;
 let pomodoroStart;
 let pomodoroEntryId;
 
-// The end of the day is worked out from the clock, so it is worked out again once a minute.
-setInterval(refreshPomodoroDisplay, 60000);
+// The clock moves under the page whether or not anyone touches it, and a tab can sit untouched for days: on a second screen, or
+// simply never clicked into. The end of the day is read off the clock, and so is whether the day has turned, so both are read
+// again once a minute rather than only when the page is come back to.
+setInterval(() => {
+    refreshPomodoroDisplay();
+    updateToCurrentDay();
+}, 60000);
 document.getElementById('pomodoroInput').checked = pomodoroOn;
 showPomodoroDisplay();
 

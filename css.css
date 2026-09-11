@@ -176,8 +176,13 @@ body {
     margin-bottom: 4px;
 }
 
-.breakTotal, .endOfDay {
+.breakTotal, .endOfDay, .dayNote {
     color: #808080;
+}
+
+/* An aside to the date rather than a part of the toolbar, so it is read only when it is looked for. */
+.dayNote {
+    font: 12pt sans-serif;
 }
 
 textarea.notes {
