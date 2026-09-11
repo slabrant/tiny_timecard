@@ -252,9 +252,6 @@ const displayTimeFormat = new Intl.DateTimeFormat('en-CA', {
 // The browser writes its own asking before a refresh, and will not be told what to say, so the asking done here is worded to match it.
 const unsavedDataMessage = 'Changes you made may not be saved.';
 
-// A day written elsewhere is only found when a save is about to go over it, so that is where it is asked about.
-const dayChangedMessage = 'This day was changed somewhere else since it was opened here. Saving will write over that change. Would you like to continue?';
-
 // A day's work is done once this much of it has been worked, until it is set to something else.
 const defaultGoalMinutes = 8 * 60;
 
@@ -367,6 +364,15 @@ const buildFieldsText = (fields) => {
     return fields.map(field => field.title + ':' + field.columns).join(', ');
 };
 
+// A day written elsewhere is only found when a save is about to go over it, so that is where it is asked about. What would go
+// is counted into the asking: entries lost without number read as a warning, and entries lost by the nine read as a loss.
+const buildDayChangedMessage = (date, entries) => {
+    const lost = getDay(date).entries.length - entries.length;
+    const lostNote = (0 < lost) ? ' ' + lost + ((1 === lost) ? ' entry' : ' entries') + ' written since would go.' : '';
+
+    return 'This day was changed somewhere else since it was opened here.' + lostNote + ' Saving will write over that change. Would you like to continue?';
+};
+
 // Every field in the layout gets a column so the days line up, and text a day holds outside the layout follows on.
 const buildFieldColumns = (notes) => {
     let titles = getFields().map(field => field.title);
@@ -391,8 +397,8 @@ const checkDayEqual = (day1, day2) => {
 // A save writes the day whole, from the page, so anything held under that date that the page never read goes with it. Another
 // tab left open on the same day is enough: it saves the day as it read it, and the work done since is gone without a word. So a
 // save that would take something with it asks first.
-const checkDayOverwrite = (date) => {
-    return checkDayEqual(getDay(date), loadedDay) || confirm(dayChangedMessage);
+const checkDayOverwrite = (date, entries) => {
+    return checkDayEqual(getDay(date), loadedDay) || confirm(buildDayChangedMessage(date, entries));
 };
 
 const checkDaysEqual = (days1, days2) => {
@@ -858,7 +864,7 @@ const restartPomodoroTimer = () => {
 };
 
 const saveEntries = (entries, date) => {
-    if (!checkDayOverwrite(date))
+    if (!checkDayOverwrite(date, entries))
         return;
 
     let days = getDays();
@@ -874,7 +880,7 @@ const saveEntries = (entries, date) => {
 };
 
 const saveDay = (day, date) => {
-    if (!checkDayOverwrite(date))
+    if (!checkDayOverwrite(date, day.entries))
         return;
 
     let days = getDays();
