@@ -36,8 +36,9 @@ The time data can be exported and analyzed in a third party system, such as a sp
   - Refreshing and closing are asked about by the browser, in words of its own that a page cannot set
   - Changing the day is asked about by the timecard, in the same words, so the two read alike
 - The `Goal` setting is how much worked time makes a day, as hours and minutes, such as `8:00`
-  - The gray time on the timer display is when the goal will be met, worked out from the goal and the work done so far, so it says nothing about the pomodoro cycle
+  - The gray time on the timer display is when the goal will be met, worked out from the goal, the work done so far, and the breaks still to come
   - Only worked time counts towards it, so taking a break carries the end of the day out with it, and working holds it still
+  - The breaks the cycle still has to hand out before the goal is met are time that has to pass, so they are counted in: three hours of work left on a `45,5` cycle is about three and a half hours of clock
   - The period in progress counts towards the goal, whether or not it has been stopped yet
   - Once the goal is met that time reads `met` instead
 - Shows a day total under the entries: time worked, then time on break in gray after a slash

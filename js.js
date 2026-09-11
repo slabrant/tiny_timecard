@@ -492,12 +492,45 @@ const getFieldElements = () => {
     return Array.from(document.getElementById('fields').children);
 };
 
-// The end of the day is where the goal is met, so it moves out while a break is taken and holds still while work is done.
-const getEndOfDay = () => {
-    const minutesLeft = getGoalMinutes() - getWorkedMinutes();
+// The end of the day is where the goal is met, so it moves out while a break is taken and holds still while work is done. Only
+// work meets the goal, but the breaks between here and there are still time that has to pass, so the cycle is walked forward
+// from the period in hand and they are counted in: three hours of work left on a 45 and 5 cycle is closer to three and a half
+// hours of clock. The period in hand has only the rest of itself left to give, and the periods after it give all of themselves.
+const getEndOfDay = (entryId, periodEnd) => {
     const now = new Date;
+    const cycle = getPomodoroCycle();
+    let minutesLeft = getGoalMinutes() - getWorkedMinutes();
+    let minutesPassed = 0;
 
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + Math.max(0, minutesLeft));
+    if (minutesLeft <= 0)
+        return now;
+
+    // A cycle with no work in it is never worked through, so it is left out of the reckoning rather than walked forever.
+    if (pomodoroOn && cycle.times.some((time, index) => !cycle.isBreakAt(index) && 0 < time)) {
+        let index = entryId;
+        let minutesOn = Math.max(0, Math.round((periodEnd - now) / 60000));
+
+        while (0 < minutesLeft) {
+            if (cycle.isBreakAt(index % cycle.times.length)) {
+                minutesPassed += minutesOn;
+            }
+            else {
+                // A work period counts only as far as the goal, since a day ends in the middle of one as readily as at its end.
+                const minutesWorked = Math.min(minutesOn, minutesLeft);
+
+                minutesPassed += minutesWorked;
+                minutesLeft -= minutesWorked;
+            }
+
+            index += 1;
+            minutesOn = cycle.times[index % cycle.times.length];
+        }
+    }
+    else {
+        minutesPassed = minutesLeft;
+    }
+
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + minutesPassed);
 };
 
 const getGoalMinutes = () => {
@@ -566,10 +599,10 @@ const getPomodoroMessageAndDelay = (start, entryId) => {
     const newDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), lastStartTimeArr[0], +lastStartTimeArr[1] + pomodoroTime);
     const delay = newDate - nowMs;
 
-    // The day ends where the goal is met, so what is left of the cycle has no say in it.
+    // The day ends where the goal is met, which is a walk forward from the period in hand, so it is told where that ends.
     const endOfDayNote = (getGoalMinutes() <= getWorkedMinutes()) ?
         "met" :
-        displayTimeFormat.format(getEndOfDay());
+        displayTimeFormat.format(getEndOfDay(entryId, newDate));
     const message = pomodoroType + " until " + displayTimeFormat.format(newDate);
 
     return [message, delay, pomodoroType, endOfDayNote];
