@@ -19,6 +19,16 @@ document.addEventListener('visibilitychange', (e) => {
         updateToCurrentDay();
 });
 
+// A browser puts back what was typed into the page it is reloading, and it does that after the page has drawn itself: the date
+// field comes back reading a day gone by, and text typed into the entries comes back in whatever was drawn in its place. The
+// controls say not to, which is all a page can say, so the page is also drawn again here, once the putting back is done and
+// before anything has been typed. A page coming back from the browser's cache is the page as it was left, unsaved work and all,
+// and drawing that again would be the one way to lose the work, so it is left alone.
+window.addEventListener('pageshow', (e) => {
+    if (!e.persisted)
+        updateDate(date);
+});
+
 // Refreshing or closing the page loses what has not been saved, the same as changing the day does, so it is asked about too.
 window.addEventListener('beforeunload', (e) => {
     if (checkPageChanged())
@@ -905,11 +915,15 @@ const setPageData = (date) => {
     // Kept as read, so a save can tell what the page has seen of this day from what has been written to it since.
     loadedDay = day;
     document.getElementById('rows').innerHTML = '';
-    showFields(day.notes);
 
+    // The entries come before the fields on the page, so they are made in that order too. A browser putting back what was typed
+    // into a page it is reloading goes by the order the controls are made in, and hands the entries' text to whatever was made
+    // first: with the fields made first, a day's entries came back as the next day's notes.
     day.entries.forEach((entry) => {
         addRow(entry);
     });
+
+    showFields(day.notes);
 
     markBreakRows();
     updateDayTotal();
